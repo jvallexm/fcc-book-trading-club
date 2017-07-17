@@ -1,0 +1,114 @@
+body
+{
+  background-color: #e2e2e2  
+}
+#header
+{
+  background-color: blue;
+}
+.white-line
+{
+  background-color: white;
+  min-height: 5px;
+}
+.book
+{
+  background-color: white;
+  width: 152px;
+  min-height: 214px;
+  border-radius: 20px;
+  padding: 10px;
+  padding-bottom: 5px;
+  margin:10px;
+  box-shadow: 2px 2px 2px gray,
+              -2px 2px 2px gray,
+              2px -2px 2px gray,
+             -2px -2px 2px gray;
+}
+img
+{
+  border-radius: 10px;
+  margin-bottom: 5px;
+    box-shadow: 1px 1px 1px gray,
+              -1px 1px 1px gray,
+              1px -1px 1px gray,
+             -1px -1px 1px gray;
+
+}
+#app-view
+{
+  padding: 10px;
+  max-width: 1000px;
+}
+#gray-out
+{
+  top: 0px;
+  left: 0px;
+  z-index: 1;
+  position: absolute;
+  background-color: rgba(200, 200, 200, .72);
+  height: 100%;
+  min-width:100%;
+  display: flex;
+  justify-content: center;
+  flex-direction: column;  
+  overflow:hidden;
+}
+#full-view
+{
+  background-color: white;
+  font-family: "Roboto Condensed";
+  min-width: 304px;
+  max-width: 500px;
+  min-height: 214px;
+  border-radius: 20px;
+  padding: 10px;
+  padding-bottom: 5px;
+  margin:10px;
+  box-shadow: 2px 2px 2px gray,
+              -2px 2px 2px gray,
+              2px -2px 2px gray,
+             -2px -2px 2px gray;
+  z-index: 5;
+}
+.middle-text
+{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;  
+}
+
+button
+{
+  font-family: "Lobster";
+  border-radius: 5px;
+}
+.head
+{
+  font-family: "Lobster";
+  width: 100%;
+  color: white;
+  padding: 5px;
+  text-shadow: 2px 2px 2px black;
+  box-shadow: 2px 2px 2px black;
+  border-radius: 5px;
+  max-width: 500px;
+  background-color: blue;
+}
+.x-box
+{
+  position: absolute;
+  top: 15px;
+  right: 40px;
+  z-index: 10;
+  font-size: 125%;
+}
+.btn-primary
+{
+  margin-right: 5px;
+}
+.lil-pad
+{
+  padding: 10px;
+  padding-top: 0px;
+}

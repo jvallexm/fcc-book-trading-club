@@ -1,0 +1,67 @@
+Algorithm
+
+
+
+database DONE
+
+book{ isbn:
+      date added
+      title
+      authors
+      image
+    }
+
+user {_id
+      name,
+      city,
+      state,
+      my books: [isbn,isbn] 
+      trade requests: [{
+         requested by _id
+         book trading to
+         book trading from
+      }],
+      declined: [{see above}]
+      
+Server methods      
+
+mongodb
+
+get the book information 
+
+send new book data to books
+
+send new users to users
+    update user information
+    
+send trade requests
+
+send decline requests
+
+add new books to users 
+
+sap the books 
+    
+sockets 
+
+send trade notifications to users who are online
+
+send declined notifications to users online 
+
+send new book info to users online 
+
+client:
+
+componentWillMount - get book list
+
+sign in with fb to access thing
+
+thing that shows any trades that need responding do
+
+home page - show all the books
+    -expand book
+    -request swaps
+user panel - edit name city and state
+
+add a new book by isbn 
+
