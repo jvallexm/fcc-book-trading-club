@@ -15974,7 +15974,6 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 
 
 var socket = __WEBPACK_IMPORTED_MODULE_3_socket_io_client___default()();
-
 var searchFront = 'https://www.googleapis.com/books/v1/volumes?q=isbn:';
 var searchBack = '&key=AIzaSyA07NHdSXAhv8cLIyND8qsb4Uvwt0-DVgE';
 
@@ -15992,13 +15991,19 @@ var App = function (_React$Component) {
       grayOut: false,
       whichBook: undefined,
       search: "",
-      message: ""
+      message: "",
+      newest: true,
+      aToZ: false,
+      loggedIn: false,
+      user: undefined
     };
     _this.grayDisplay = _this.grayDisplay.bind(_this);
     _this.closeOut = _this.closeOut.bind(_this);
     _this.handleChange = _this.handleChange.bind(_this);
     _this.makeGrid = _this.makeGrid.bind(_this);
     _this.getNewBook = _this.getNewBook.bind(_this);
+    _this.sortBooks = _this.sortBooks.bind(_this);
+    _this.responseFacebook = _this.responseFacebook.bind(_this);
     return _this;
   }
 
@@ -16018,7 +16023,14 @@ var App = function (_React$Component) {
       });
       socket.on("force push", function () {
         socket.emit("needs books", { needs: "books" });
+        _this2.setState({ message: "Getting new data.." });
       });
+    }
+  }, {
+    key: 'responseFacebook',
+    value: function responseFacebook(response) {
+      socket.emit("get user data", { user: response.userID });
+      this.setState({ user: response, loggedIn: true });
     }
   }, {
     key: 'getNewBook',
@@ -16076,13 +16088,18 @@ var App = function (_React$Component) {
       this.setState({ search: e.target.value });
     }
   }, {
+    key: 'sortBooks',
+    value: function sortBooks(field, a_z) {
+      console.log("dng");
+    }
+  }, {
     key: 'render',
     value: function render() {
       var _this3 = this;
 
       return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
         'div',
-        { id: "whole-thing", className: 'text-center container-fluid' },
+        { id: "whole-thing" },
         this.state.grayOut ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
           'div',
           { id: "gray-out",
@@ -16091,7 +16108,8 @@ var App = function (_React$Component) {
             'div',
             { className: 'text-center container-fluid' },
             __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(BookView, { book: this.state.whichBook,
-              close: this.closeOut })
+              close: this.closeOut,
+              loggedIn: this.state.loggedIn })
           )
         ) : "",
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16108,24 +16126,41 @@ var App = function (_React$Component) {
             __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'h5',
               null,
-              'Trade Books With Strangers!'
+              'Trade Books With Real Human People!'
             )
           ),
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-            'h1',
-            null,
-            this.state.message
+            'div',
+            { className: 'margin-10' },
+            !this.state.loggedIn ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_2_react_facebook_login___default.a, {
+              cssClass: 'btn btn-primary',
+              appId: '1927284784209091',
+              autoLoad: true,
+              fields: 'name,picture',
+              callback: this.responseFacebook,
+              onClick: console.log("sdfadsf") }) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              null,
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'button',
+                { className: 'btn-primary' },
+                'My Books ',
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-book' })
+              ),
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'button',
+                { className: 'btn-primary' },
+                'Pending Trades ',
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-exchange' })
+              ),
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'button',
+                { className: 'btn-primary' },
+                'Settings ',
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-gears' })
+              )
+            )
           ),
-          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('input', { placeholder: "ISBN 13",
-            value: this.state.search,
-            onChange: this.handleChange }),
-          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-            'button',
-            { className: 'btn btn-primary',
-              onClick: this.getNewBook },
-            'Submit'
-          ),
-          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('br', null),
           this.state.booksGrid.map(function (col, i) {
             return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
@@ -16281,7 +16316,7 @@ var BookView = function (_App) {
                 )
               ) : ""
             ),
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            this.props.loggedIn ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
               null,
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16293,9 +16328,14 @@ var BookView = function (_App) {
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
                 { className: 'btn-danger' },
-                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-plus' }),
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-book' }),
                 ' Add to My Books'
               )
+            ) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'button',
+              { className: 'btn-primary', disabled: "disabled" },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-exchange' }),
+              ' Log In to Trade Books'
             )
           )
         )

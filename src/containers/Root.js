@@ -3,7 +3,6 @@ import $ from 'jquery';
 import FacebookLogin from 'react-facebook-login';
 import io from 'socket.io-client';
 const socket=io();
-
 const searchFront = 'https://www.googleapis.com/books/v1/volumes?q=isbn:';
 const searchBack = '&key=AIzaSyA07NHdSXAhv8cLIyND8qsb4Uvwt0-DVgE'
 
@@ -19,13 +18,19 @@ export default class App extends React.Component
         grayOut: false,
         whichBook: undefined,
         search: "",
-        message: ""
+        message: "",
+        newest: true,
+        aToZ: false,
+        loggedIn: false,
+        user: undefined
       }
     this.grayDisplay = this.grayDisplay.bind(this);
     this.closeOut = this.closeOut.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.makeGrid = this.makeGrid.bind(this);
     this.getNewBook = this.getNewBook.bind(this);
+    this.sortBooks = this.sortBooks.bind(this);
+    this.responseFacebook = this.responseFacebook.bind(this);
   }
   componentWillMount()
   {
@@ -44,8 +49,17 @@ export default class App extends React.Component
     });
     socket.on("force push",()=>{
       socket.emit("needs books",{needs: "books"});
+      this.setState({message: "Getting new data.."});
     });
     
+  }
+  responseFacebook(response)
+  {
+    socket.emit("get user data",
+                {user: response.userID,
+                 name: response.name  
+                });
+    this.setState({user: response, loggedIn: true});
   }
   getNewBook()
   {
@@ -107,6 +121,10 @@ export default class App extends React.Component
       return false;
     this.setState({search: e.target.value});
   }
+  sortBooks(field,a_z)
+  {
+    console.log("dng");
+  }
   render()
   {
      return(
@@ -116,7 +134,8 @@ export default class App extends React.Component
              className="text-center container-fluid">
          <div className="text-center container-fluid">    
            <BookView book={this.state.whichBook} 
-                     close={this.closeOut}/>  
+                     close={this.closeOut}
+                     loggedIn={this.state.loggedIn}/>  
          </div>
          </div>: ""}
             
@@ -125,15 +144,45 @@ export default class App extends React.Component
         
         <div className="head text-center container-fluid"> 
           <h1>Book Stop N' Swap!</h1>
-          <h5>Trade Books With Strangers!</h5>          
+          <h5>Trade Books With Real Human People!</h5>          
         </div> 
         
-        <h1>{this.state.message}</h1>
+        
+        <div className="margin-10">
+          {
+            !this.state.loggedIn
+            ?
+            <FacebookLogin 
+              cssClass="btn btn-primary"
+              appId='1927284784209091'
+              autoLoad={true}
+              fields="name,picture"
+              callback={this.responseFacebook}
+              onClick={console.log("sdfadsf")}/>
+            : 
+            <div>
+                <button className="btn-primary">My Books <i className="fa fa-book"/></button>
+                <button className="btn-primary">Pending Trades <i className="fa fa-exchange"/></button>
+                <button className="btn-primary">Settings <i className="fa fa-gears"/></button>
+            </div>  
+          }    
+        </div>  
+        
+      {/*  <h1>{this.state.message}</h1>
         <input placeholder={"ISBN 13"} 
                value={this.state.search}
                onChange={this.handleChange}/>
         <button className="btn btn-primary"
                 onClick={this.getNewBook}>Submit</button><br />
+       {/* <div>
+          <button className="btn-primary"
+                  onClick={()=>this.sortBooks("_id",false)}>
+            {this.state.newest ? "Oldest First" : "Newest First"}
+          </button>
+          <button className="btn-primary">
+            {this.state.aToZ ? "Sort by Title Z-A" : "Sort by Title A-Z"}
+          </button>
+        </div>*/}
         
         {this.state.booksGrid.map((col,i)=>
             <div className="row" key={"col" + i}>                        
@@ -210,15 +259,18 @@ class BookView extends App
                     : <span>{this.state.blurb}...<strong onClick={this.moreSwitch}>More</strong></span>}
                  </div>  : ""}
                </div>
-               
+                 
+                 {this.props.loggedIn ?
                  <div>
                    <button className="btn-primary">
                      <i className="fa fa-exchange" /> Trade For This Book
                    </button>    
                    <button className="btn-danger">
-                     <i className="fa fa-plus" /> Add to My Books
+                     <i className="fa fa-book" /> Add to My Books
                    </button>  
-                 </div>
+                 </div> : <button className="btn-primary" disabled={"disabled"}>
+                     <i className="fa fa-exchange" /> Log In to Trade Books
+                   </button>  }
 
              </div>  
            </div>  

@@ -60,9 +60,33 @@ io.on('connection', (socket) => {
        }); 
     });
     
+    socket.on('get user data',(data)=>{
+       MongoClient.connect(url,(err,db)=>{
+          if(err)
+           throw err;
+          var users = db.collection('users');
+          var findOne = ()=>{
+              users.findOne({_id: data.user},(err,result)=>{
+                  if(err)
+                    throw err;
+                  if(result)
+                  {
+                      console.log("exists");   
+                  }
+                  else
+                  {
+                      console.log("does not exist");
+                  }
+              })
+          }
+          findOne(db,()=>{db.close();});
+       });
+    });
+    
     socket.on('disconnect', () => {
        console.log('user disconnected');
     });
-  
+    
+    
  
 });
