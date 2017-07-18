@@ -227,7 +227,8 @@ io.on('connection', (socket) => {
                                   for: data.for
                                  }
                          }}); 
-            socket.emit("force user update",{force: "update"});             
+            socket.emit("force user update",{force: "update"});
+            socket.emit("force push", {force: "push"});
           };
           updateTo(db);
        });         

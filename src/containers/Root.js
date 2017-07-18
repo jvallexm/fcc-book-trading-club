@@ -6,6 +6,7 @@ const socket=io();
 const searchFront = 'https://www.googleapis.com/books/v1/volumes?q=isbn:';
 const searchBack = '&key=AIzaSyA07NHdSXAhv8cLIyND8qsb4Uvwt0-DVgE';
 import BookView from './BookView.js';
+import TradeView from './TradeView.js';
 
 export default class App extends React.Component
 {
@@ -304,7 +305,7 @@ export default class App extends React.Component
               onClick={console.log("sdfadsf")}/>
             : 
             <div>
-                 {!this.state.myBooks
+                 {!this.state.myBooks && !this.state.viewAllTrades
                  ?  <button className="btn-success btn-margin"
                           onClick={()=>this.showMyBooks(this.state.books)}>My Books <i className="fa fa-book"/></button>
                  :  <button className="btn-primary"
@@ -327,7 +328,8 @@ export default class App extends React.Component
         {this.state.loggedIn && this.state.userData!=undefined && this.state.viewAllTrades ?
          <div>
          <TradeView userData={this.state.userData}
-                    books = {this.state.books}/>
+                    books = {this.state.books}
+                    socket = {socket}/>
          </div>            
          :
          this.state.booksGrid.map((col,i)=>
@@ -350,102 +352,6 @@ export default class App extends React.Component
       );
   }
 }
-
-
-class TradeView extends App
-{
-  constructor(props)
-  {
-    super(props);
-    this.cancelTrade = this.cancelTrade.bind(this);
-    this.confirmTrade = this.confirmTrade.bind(this);
-  }
-  confirmTrade(from,to,offer,ffor)
-  {
-    let toCancel = {
-      to: to,
-      from: from,
-      offer: offer,
-      for: ffor
-    };
-    socket.emit("confirm swap", toCancel);
-    socket.emit("cancel swap", toCancel);
-  }
-  cancelTrade(to,from,offer,ffor)
-  {
-    let toCancel = {
-      to: to,
-      from: from,
-      offer: offer,
-      for: ffor
-    };
-    socket.emit("cancel swap", toCancel);
-  }
-  render()
-  {
-    return(
-
-      <div id={"trade-view"}>
-          <h4>Pending Trades</h4>
-          {this.props.userData.pending_trades.map((d,i)=>
-            <div className="row trade-btn" key={d+i+"f"}>
-              <div className="col-md-2 middle-text">
-                 {d.from}
-              </div>
-              <div className="col-md-4 middle-text">
-                 <strong>{
-                   this.props.books.map((da,i)=>
-                     (da.isbn == d.offer) ? da.name : ""
-                   )}</strong>
-              </div>
-              <div className="col-md-1 green middle-text">
-                 <i className="fa fa-exchange"/>
-              </div>
-              <div className="col-md-4 middle-text">
-                 <strong>{
-                   this.props.books.map((da,i)=>
-                     (da.isbn == d.for) ? da.name : ""
-                   )}</strong>
-              </div>
-              <div className="col-md-1">
-                 <button className="btn-primary"
-                          onClick={()=>this.confirmTrade(d.from,this.props.userData._id,d.offer,d.for)}>Accept</button>
-              </div>
-            </div>
-          )}
-          <h4>Sent Offers</h4>
-          {this.props.userData.sent_offers.map((d,i)=>
-            <div className="row trade-btn" key={d+i+"g"}>
-              <div className="col-md-2 middle-text">
-                 {d.to}
-              </div>
-              <div className="col-md-4 middle-text">
-                 <strong>{
-                   this.props.books.map((da,i)=>
-                     (da.isbn == d.offer) ? da.name : ""
-                   )}</strong>
-              </div>
-              <div className="col-md-1 green middle-text">
-                 <i className="fa fa-exchange"/>
-              </div>
-              <div className="col-md-4 middle-text">
-                 <strong>{
-                   this.props.books.map((da,i)=>
-                     (da.isbn == d.for) ? da.name : ""
-                   )}</strong>
-              </div>
-              <div className="col-md-1">
-                 <button className="btn-danger"
-                         onClick={()=>this.cancelTrade(d.to,this.props.userData._id,d.offer,d.for)}>Cancel</button>
-              </div>
-            </div>
-          )}
-        </div>
- 
-    );
-  }
-}
-
 
 class Ding extends App
 {
