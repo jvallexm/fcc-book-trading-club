@@ -6,7 +6,7 @@ var MongoClient = mongodb.MongoClient;
 var request = require("request");
 // api key AIzaSyA07NHdSXAhv8cLIyND8qsb4Uvwt0-DVgE
 
-var url = 'mongodb://bookbook:fourbooks@ds161742.mlab.com:61742/books'
+var url = 'mongodb://bookbook:fourbooks@ds161742.mlab.com:61742/books';
 
 app.use(express.static(__dirname));
 
@@ -39,7 +39,7 @@ io.on('connection', (socket) => {
                            socket.emit("get books",{data: data});
                            db.close();
                          }  
-                     })
+                     });
               }
            };
            getAll(db);
@@ -71,22 +71,46 @@ io.on('connection', (socket) => {
                     throw err;
                   if(result)
                   {
-                      console.log("exists");   
+                     console.log("getting user data...");
+                     socket.emit("user data",{data: result}); 
                   }
                   else
                   {
-                      console.log("does not exist");
+                    console.log("Making new user...");
+                    console.log(data.name);
+                    var newUser = {
+                       name: data.name,
+                       _id: data.user,
+                       books: [],
+                       pending_trades: []
+                    };
+                    socket.emit("user data", {data: newUser});
+                    users.insert(newUser);
                   }
-              })
-          }
+              });
+          };
           findOne(db,()=>{db.close();});
        });
+    });
+    
+    socket.on('add book',(data)=>{
+       MongoClient.connect(url, (err,db)=>{
+          if(err)
+            console.log(err);
+          console.log("adding " + data.isbn + " to " + data._id);
+          var users = db.collection('users');
+          var update = () => {
+            users.update({_id: data._id},
+                         {$push: {books: data.isbn}});
+          };
+          update(db,()=>{db.close();});
+       });  
     });
     
     socket.on('disconnect', () => {
        console.log('user disconnected');
     });
     
-    
+
  
 });

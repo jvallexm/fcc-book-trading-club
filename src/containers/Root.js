@@ -22,6 +22,8 @@ export default class App extends React.Component
         newest: true,
         aToZ: false,
         loggedIn: false,
+        userData: undefined,
+        userBooks: ["none"],
         user: undefined
       }
     this.grayDisplay = this.grayDisplay.bind(this);
@@ -31,6 +33,7 @@ export default class App extends React.Component
     this.getNewBook = this.getNewBook.bind(this);
     this.sortBooks = this.sortBooks.bind(this);
     this.responseFacebook = this.responseFacebook.bind(this);
+    this.addToCollection = this.addToCollection.bind(this);
   }
   componentWillMount()
   {
@@ -42,7 +45,7 @@ export default class App extends React.Component
           return -1;
          else
           return 1;
-       })
+       });
        this.state.books = sortedData;
        this.makeGrid();
        this.setState({books: sortedData});
@@ -51,7 +54,10 @@ export default class App extends React.Component
       socket.emit("needs books",{needs: "books"});
       this.setState({message: "Getting new data.."});
     });
-    
+    socket.on("user data",(data)=>{
+      console.log("getting books: " + data.data.books);
+      this.setState({userData: data.data, userBooks: data.data.books});
+    });
   }
   responseFacebook(response)
   {
@@ -60,6 +66,15 @@ export default class App extends React.Component
                  name: response.name  
                 });
     this.setState({user: response, loggedIn: true});
+  }
+  addToCollection(isbn)
+  {
+    //console.log("adding...");
+    var userBooks = this.state.userBooks;
+    userBooks.push(isbn);
+    console.log("new user books: " + userBooks);
+    socket.emit("add book",{isbn: isbn, _id:this.state.user.userID});
+    this.setState({userBooks: userBooks});
   }
   getNewBook()
   {
@@ -109,7 +124,8 @@ export default class App extends React.Component
   }
   grayDisplay(obj)
   {
-    this.setState({grayOut: true, whichBook: obj})
+    console.log("user books: " + this.state.userBooks);
+    this.setState({grayOut: true, whichBook: obj});
   }
   closeOut()
   {
@@ -135,7 +151,9 @@ export default class App extends React.Component
          <div className="text-center container-fluid">    
            <BookView book={this.state.whichBook} 
                      close={this.closeOut}
-                     loggedIn={this.state.loggedIn}/>  
+                     loggedIn={this.state.loggedIn}
+                     addOne={this.addToCollection}
+                     userBooks={this.state.userBooks}/>  
          </div>
          </div>: ""}
             
@@ -218,6 +236,7 @@ class BookView extends App
   }
   componentWillMount()
   {
+    console.log(this.props.userBooks);
     let blurb = this.props.book.description.substr(0,140);
     let lastWord = blurb.lastIndexOf(" ");
     blurb = blurb.substr(0,lastWord);
@@ -265,10 +284,16 @@ class BookView extends App
                    <button className="btn-primary">
                      <i className="fa fa-exchange" /> Trade For This Book
                    </button>    
-                   <button className="btn-danger">
+                   { this.props.userBooks.indexOf(this.props.book.isbn) == -1
+                   ? <button className="btn-danger"
+                           onClick={()=>this.props.addOne(this.props.book.isbn)}>
                      <i className="fa fa-book" /> Add to My Books
-                   </button>  
-                 </div> : <button className="btn-primary" disabled={"disabled"}>
+                    </button>  
+                   : <button className="btn-success">
+                     <i className="fa fa-archive" /> In Your Collection
+                    </button>  
+                   }
+                 </div> : <button className="btn-danger" disabled={"disabled"}>
                      <i className="fa fa-exchange" /> Log In to Trade Books
                    </button>  }
 
