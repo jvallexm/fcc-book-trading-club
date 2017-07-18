@@ -57,8 +57,7 @@ img
 {
   background-color: white;
   font-family: "Roboto Condensed";
-  min-width: 304px;
-  max-width: 500px;
+  min-width: 500px;
   min-height: 214px;
   border-radius: 10px;
   padding: 10px;
@@ -147,4 +146,31 @@ button
   text-shadow: 2px 2px 2px black;
   border-radius: 5px;
   box-shadow: 1px 1px 1px gray;
+}
+.blurb
+{
+  max-width: 400px;
+}
+.green
+{
+  font-weight: bold;
+  color: green;
+}
+select
+{
+ font-family: "Roboto Condensed";
+}
+option
+{
+ font-family: "Roboto Condensed";
+}
+.trade-btn
+{
+  margin-top:5px;
+  margin-bottom:5px;
+}
+.minwid
+{
+  min-width: 300px;
+  margin-bottom: 10px;
 }

@@ -15975,20 +15975,47 @@ var BookView = function (_React$Component) {
 
     _this.state = {
       more: false,
-      blurb: ""
+      blurb: "",
+      pendingTrades: [],
+      offer: ""
     };
     _this.moreSwitch = _this.moreSwitch.bind(_this);
+    _this.makeOffer = _this.makeOffer.bind(_this);
+    _this.handleChange = _this.handleChange.bind(_this);
     return _this;
   }
 
   _createClass(BookView, [{
+    key: "makeOffer",
+    value: function makeOffer(toId) {
+      if (this.state.offer == "" || this.state.offer == null) return false;else this.props.sendOffer({
+        to: toId,
+        from: this.props.userData._id,
+        offer: this.state.offer,
+        for: this.props.book.isbn
+      });
+
+      // console.log("sending offer to: " + toId + " from: " + this.props.userData._id);
+      //    console.log("offer: " + this.state.offer + "for: " + this.props.book.isbn);  
+    }
+  }, {
+    key: "handleChange",
+    value: function handleChange(e) {
+      this.setState({ offer: e.target.value });
+    }
+  }, {
     key: "componentWillMount",
     value: function componentWillMount() {
-      console.log(this.props.userBooks);
+      //console.log(this.props.userBooks);
       var blurb = this.props.book.description.substr(0, 140);
       var lastWord = blurb.lastIndexOf(" ");
       blurb = blurb.substr(0, lastWord);
-      this.setState({ blurb: blurb });
+      var pend = [];
+      var pending = this.props.userData.sent_offers;
+      for (var i = 0; i < pending.length; i++) {
+        if (pending[i].for == this.props.book.isbn) pend.push(pending[i].to);
+      }
+      this.setState({ blurb: blurb, pendingTrades: pend });
     }
   }, {
     key: "moreSwitch",
@@ -16062,7 +16089,7 @@ var BookView = function (_React$Component) {
               this.props.book.isbn,
               this.props.book.description != undefined ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 "div",
-                { className: "lil-pad" },
+                { className: "lil-pad blurb" },
                 this.state.more ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                   "span",
                   null,
@@ -16089,13 +16116,16 @@ var BookView = function (_React$Component) {
             this.props.loggedIn ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               "div",
               null,
-              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              this.props.userBooks.indexOf(this.props.book.isbn) == -1 ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 "button",
-                { className: "btn-primary" },
+                { className: "btn-primary",
+                  onClick: function onClick() {
+                    return _this2.props.trade(_this2.props.book.isbn);
+                  } },
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement("i", { className: "fa fa-exchange" }),
                 " Trade For This Book"
-              ),
-              this.props.userBooks.indexOf(this.props.book.isbn) == -1 ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              ) : "",
+              this.props.userBooks.indexOf(this.props.book.isbn) == -1 && !this.props.showTrade ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 "button",
                 { className: "btn-danger",
                   onClick: function onClick() {
@@ -16103,12 +16133,12 @@ var BookView = function (_React$Component) {
                   } },
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement("i", { className: "fa fa-book" }),
                 " Add to My Books"
-              ) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              ) : !this.props.showTrade ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 "button",
                 { className: "btn-success" },
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement("i", { className: "fa fa-archive", disabled: "disabled" }),
                 " In Your Collection"
-              )
+              ) : ""
             ) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               "button",
               { className: "btn-danger", disabled: "disabled" },
@@ -16116,6 +16146,66 @@ var BookView = function (_React$Component) {
               " Log In to Trade Books"
             )
           )
+        ),
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          "div",
+          { className: "middle-text" },
+          this.props.showTrade ? this.props.tradePartners.map(function (d, ii) {
+            return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              "div",
+              { className: "row trade-btn", key: d + ii },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                "div",
+                { className: "col-md-3 middle-text" },
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  "strong",
+                  null,
+                  d.name
+                )
+              ),
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                "div",
+                { className: "col-md-1 middle-text" },
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement("i", { className: "fa fa-exchange green" })
+              ),
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                "div",
+                { className: "col-md-6 middle-text" },
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  "select",
+                  { onChange: _this2.handleChange },
+                  __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                    "option",
+                    { value: null },
+                    " - "
+                  ),
+                  _this2.props.myBooksObj.map(function (dd, i) {
+                    return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                      "option",
+                      { value: dd.isbn, key: dd.isbn + ii },
+                      dd.name.length > 35 ? dd.name.substr(0, 32) + "..." : dd.name
+                    );
+                  })
+                )
+              ),
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                "div",
+                { className: "col-md-2 middle-text" },
+                _this2.state.pendingTrades.indexOf(d._id) > -1 ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  "button",
+                  { className: "btn-success", disabled: "disabled" },
+                  "Pending"
+                ) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  "button",
+                  { className: "btn-primary",
+                    onClick: function onClick() {
+                      return _this2.makeOffer(d._id);
+                    } },
+                  "Offer"
+                )
+              )
+            );
+          }) : ""
         )
       );
     }
@@ -16193,7 +16283,11 @@ var App = function (_React$Component) {
       userBooks: ["none"],
       user: undefined,
       myBooks: false,
-      addBook: false
+      addBook: false,
+      tradePartners: [],
+      myBooksObj: [],
+      ding: false,
+      dingMessage: ""
     };
     _this.grayDisplay = _this.grayDisplay.bind(_this);
     _this.closeOut = _this.closeOut.bind(_this);
@@ -16206,6 +16300,8 @@ var App = function (_React$Component) {
     _this.showMyBooks = _this.showMyBooks.bind(_this);
     _this.showAllBooks = _this.showAllBooks.bind(_this);
     _this.addNewBook = _this.addNewBook.bind(_this);
+    _this.sendToTrade = _this.sendToTrade.bind(_this);
+    _this.sendOffer = _this.sendOffer.bind(_this);
     return _this;
   }
 
@@ -16226,9 +16322,43 @@ var App = function (_React$Component) {
         socket.emit("needs books", { needs: "books" });
       });
       socket.on("user data", function (data) {
-        console.log("getting books: " + data.data.books);
+        //console.log("getting books: " + data.data.books);
         _this2.setState({ userData: data.data, userBooks: data.data.books });
       });
+      socket.on("send users", function (data) {
+        _this2.setState({ tradePartners: data.users });
+      });
+    }
+  }, {
+    key: 'sendOffer',
+    value: function sendOffer(obj) {
+      socket.emit("push trade", obj);
+      var newUserData = this.state.userData;
+      newUserData.sent_offers.push({
+        to: obj.to,
+        offer: obj.offer,
+        for: obj.for
+      });
+      this.setState({ userData: newUserData, ding: true, dingMessage: "Offer Sent!" });
+    }
+  }, {
+    key: 'sendToTrade',
+    value: function sendToTrade(isbn) {
+      socket.emit("see who has", { isbn: "9781608868094" });
+      var myBooks = [];
+      var pendingTrades = [];
+      for (var k = 0; k < this.state.userData.sent_offers.length; k++) {
+        pendingTrades.push(this.state.userData.sent_offers[k].offer);
+      }
+      for (var j = 0; j < this.state.userBooks.length; j++) {
+        for (var i = 0; i < this.state.books.length; i++) {
+          if (this.state.books[i].isbn == this.state.userBooks[j] && pendingTrades.indexOf(this.state.userBooks[j]) == -1) myBooks.push(this.state.books[i]);
+        }
+      }
+      var sortedData = myBooks.sort(function (a, b) {
+        if (a.name > b.name) return 1;else return -1;
+      });
+      this.setState({ myBooksObj: sortedData, showTrade: true });
     }
   }, {
     key: 'addNewBook',
@@ -16267,7 +16397,7 @@ var App = function (_React$Component) {
       //console.log("adding...");
       var userBooks = this.state.userBooks;
       userBooks.push(isbn);
-      console.log("new user books: " + userBooks);
+      //console.log("new user books: " + userBooks);
       socket.emit("add book", { isbn: isbn, _id: this.state.user.userID });
       this.setState({ userBooks: userBooks });
     }
@@ -16296,7 +16426,7 @@ var App = function (_React$Component) {
             isbn: this.state.search
           });
           this.addToCollection(this.state.search);
-          this.setState({ message: "Found!!", addBook: false, grayOut: false });
+          this.setState({ message: "", addBook: false, ding: true, dingMessage: "Book Added To Your Collection!" });
         }
       }.bind(this));
     }
@@ -16317,13 +16447,13 @@ var App = function (_React$Component) {
   }, {
     key: 'grayDisplay',
     value: function grayDisplay(obj) {
-      console.log("user books: " + this.state.userBooks);
+      //console.log("user books: " + this.state.userBooks);
       this.setState({ grayOut: true, whichBook: obj });
     }
   }, {
     key: 'closeOut',
     value: function closeOut() {
-      this.setState({ grayOut: false, addBook: false });
+      this.setState({ grayOut: false, addBook: false, showTrade: false, ding: false, dingMessage: "" });
     }
   }, {
     key: 'handleChange',
@@ -16333,9 +16463,7 @@ var App = function (_React$Component) {
     }
   }, {
     key: 'sortBooks',
-    value: function sortBooks(field, a_z) {
-      console.log("dng");
-    }
+    value: function sortBooks(field, a_z) {}
   }, {
     key: 'render',
     value: function render() {
@@ -16351,11 +16479,17 @@ var App = function (_React$Component) {
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'div',
             { className: 'text-center container-fluid' },
-            !this.state.addBook ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_4__BookView_js__["a" /* default */], { book: this.state.whichBook,
+            !this.state.addBook && !this.state.ding ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_4__BookView_js__["a" /* default */], { book: this.state.whichBook,
               close: this.closeOut,
               loggedIn: this.state.loggedIn,
               addOne: this.addToCollection,
-              userBooks: this.state.userBooks }) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              userData: this.state.userData,
+              userBooks: this.state.userBooks,
+              trade: this.sendToTrade,
+              showTrade: this.state.showTrade,
+              tradePartners: this.state.tradePartners,
+              myBooksObj: this.state.myBooksObj,
+              sendOffer: this.sendOffer }) : this.state.addBook && !this.state.ding ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
               { id: "search-view" },
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16404,7 +16538,7 @@ var App = function (_React$Component) {
                   )
                 )
               )
-            )
+            ) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Ding, { message: this.state.dingMessage, close: this.closeOut })
           )
         ) : "",
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16453,7 +16587,7 @@ var App = function (_React$Component) {
               ),
               this.state.myBooks ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
-                { className: 'btn-success',
+                { className: 'btn-success btn-margin',
                   onClick: this.addNewBook },
                 'Add a Book ',
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-archive' })
@@ -16506,6 +16640,48 @@ var App = function (_React$Component) {
 
 var _default = App;
 /* harmony default export */ __webpack_exports__["a"] = _default;
+
+var Ding = function (_App) {
+  _inherits(Ding, _App);
+
+  function Ding(props) {
+    _classCallCheck(this, Ding);
+
+    return _possibleConstructorReturn(this, (Ding.__proto__ || Object.getPrototypeOf(Ding)).call(this, props));
+  }
+
+  _createClass(Ding, [{
+    key: 'render',
+    value: function render() {
+      return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        'div',
+        { id: "search-view" },
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          'div',
+          { className: 'blue-lob minwid' },
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'h3',
+            null,
+            this.props.message
+          )
+        ),
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          'div',
+          null,
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'button',
+            { className: 'btn-primary',
+              onClick: this.props.close },
+            'Done'
+          )
+        )
+      );
+    }
+  }]);
+
+  return Ding;
+}(App);
+
 ;
 
 var _temp = function () {
@@ -16520,6 +16696,8 @@ var _temp = function () {
   __REACT_HOT_LOADER__.register(searchBack, 'searchBack', '/home/ubuntu/workspace/src/containers/Root.js');
 
   __REACT_HOT_LOADER__.register(App, 'App', '/home/ubuntu/workspace/src/containers/Root.js');
+
+  __REACT_HOT_LOADER__.register(Ding, 'Ding', '/home/ubuntu/workspace/src/containers/Root.js');
 
   __REACT_HOT_LOADER__.register(_default, 'default', '/home/ubuntu/workspace/src/containers/Root.js');
 }();

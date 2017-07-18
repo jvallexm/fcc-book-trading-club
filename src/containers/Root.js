@@ -27,7 +27,11 @@ export default class App extends React.Component
         userBooks: ["none"],
         user: undefined,
         myBooks: false,
-        addBook: false
+        addBook: false,
+        tradePartners: [],
+        myBooksObj: [],
+        ding: false,
+        dingMessage: ""
       };
     this.grayDisplay = this.grayDisplay.bind(this);
     this.closeOut = this.closeOut.bind(this);
@@ -40,9 +44,12 @@ export default class App extends React.Component
     this.showMyBooks = this.showMyBooks.bind(this);
     this.showAllBooks = this.showAllBooks.bind(this);
     this.addNewBook = this.addNewBook.bind(this);
+    this.sendToTrade = this.sendToTrade.bind(this);
+    this.sendOffer = this.sendOffer.bind(this);
   }
   componentWillMount()
   {
+    
     if(this.state.books.length==0)
       socket.emit("needs books",{needs: "books"});
     socket.on("get books",(data)=>{
@@ -62,9 +69,48 @@ export default class App extends React.Component
       socket.emit("needs books",{needs: "books"});
     });
     socket.on("user data",(data)=>{
-      console.log("getting books: " + data.data.books);
+      //console.log("getting books: " + data.data.books);
       this.setState({userData: data.data, userBooks: data.data.books});
     });
+    socket.on("send users",(data)=>{
+      this.setState({tradePartners: data.users});
+    });
+  }
+  sendOffer(obj)
+  {
+     socket.emit("push trade", obj);
+     let newUserData = this.state.userData;
+     newUserData.sent_offers.push({
+       to: obj.to,
+       offer: obj.offer,
+       for: obj.for
+     });
+     this.setState({userData: newUserData, ding: true, dingMessage: "Offer Sent!"});
+  }
+  sendToTrade(isbn)
+  {
+    socket.emit("see who has",{isbn: "9781608868094"});
+    var myBooks = [];
+    var pendingTrades = [];
+    for(var k=0;k<this.state.userData.sent_offers.length;k++)
+    {
+      pendingTrades.push(this.state.userData.sent_offers[k].offer);
+    }
+    for(var j=0;j<this.state.userBooks.length;j++)
+    {
+      for(var i=0;i<this.state.books.length;i++)
+      {
+        if(this.state.books[i].isbn == this.state.userBooks[j] && pendingTrades.indexOf(this.state.userBooks[j]) == -1)
+          myBooks.push(this.state.books[i]);
+      }
+    }
+    let sortedData = myBooks.sort((a,b)=>{
+      if(a.name > b.name)
+        return 1;
+      else
+        return -1
+    });
+    this.setState({myBooksObj: sortedData, showTrade: true});
   }
   addNewBook()
   {
@@ -102,7 +148,7 @@ export default class App extends React.Component
     //console.log("adding...");
     var userBooks = this.state.userBooks;
     userBooks.push(isbn);
-    console.log("new user books: " + userBooks);
+    //console.log("new user books: " + userBooks);
     socket.emit("add book",{isbn: isbn, _id:this.state.user.userID});
     this.setState({userBooks: userBooks});
   }
@@ -139,7 +185,7 @@ export default class App extends React.Component
           isbn: this.state.search
         });
         this.addToCollection(this.state.search);
-        this.setState({message: "Found!!", addBook: false, grayOut: false});
+        this.setState({message: "", addBook: false, ding:true, dingMessage:"Book Added To Your Collection!"});
       }  
     }.bind(this));
   }
@@ -160,12 +206,12 @@ export default class App extends React.Component
   }
   grayDisplay(obj)
   {
-    console.log("user books: " + this.state.userBooks);
+    //console.log("user books: " + this.state.userBooks);
     this.setState({grayOut: true, whichBook: obj});
   }
   closeOut()
   {
-    this.setState({grayOut: false, addBook: false});
+    this.setState({grayOut: false, addBook: false, showTrade: false, ding: false, dingMessage:""});
   }
   handleChange(e)
   {
@@ -175,7 +221,7 @@ export default class App extends React.Component
   }
   sortBooks(field,a_z)
   {
-    console.log("dng");
+    
   }
   render()
   {
@@ -185,14 +231,20 @@ export default class App extends React.Component
         <div id={"gray-out"}
              className="text-center container-fluid">
          <div className="text-center container-fluid">    
-           {!this.state.addBook ?
+           {!this.state.addBook && !this.state.ding ?
            
             <BookView book={this.state.whichBook} 
                       close={this.closeOut}
                       loggedIn={this.state.loggedIn}
                       addOne={this.addToCollection}
-                      userBooks={this.state.userBooks}/>
-            : 
+                      userData={this.state.userData}
+                      userBooks={this.state.userBooks}
+                      trade={this.sendToTrade}
+                      showTrade={this.state.showTrade}
+                      tradePartners = {this.state.tradePartners}
+                      myBooksObj = {this.state.myBooksObj}
+                      sendOffer = {this.sendOffer}/>
+            : this.state.addBook && !this.state.ding ?
                 <div id={"search-view"}>
                    <div className="blue-lob">
                    <h3>Add a New Book to Your Collection</h3>
@@ -212,8 +264,7 @@ export default class App extends React.Component
                         </div>
                    </div>
                  </div>
-     
-           }         
+           : <Ding message={this.state.dingMessage} close={this.closeOut}/>}         
          </div>
          </div>: ""}
             
@@ -275,4 +326,25 @@ export default class App extends React.Component
 }
 
 
-
+class Ding extends App
+{
+  constructor(props)
+  {
+    super(props);
+  }
+  render()
+  {
+    return(
+      <div id={"search-view"}>
+                   <div className="blue-lob minwid">
+                   <h3>{this.props.message}</h3>
+                   </div> 
+                   
+          <div>  
+          <button className="btn-primary"
+                  onClick={this.props.close}>Done</button>         
+          </div>        
+      </div>             
+    );
+  }
+}

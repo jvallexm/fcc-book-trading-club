@@ -83,7 +83,10 @@ io.on('connection', (socket) => {
                        name: data.name,
                        _id: data.user,
                        books: [],
-                       pending_trades: []
+                       pending_trades: [],
+                       city: "",
+                       state: "",
+                       sent_offers: []
                     };
                     socket.emit("user data", {data: newUser});
                     users.insert(newUser);
@@ -92,6 +95,29 @@ io.on('connection', (socket) => {
           };
           findOne(db,()=>{db.close();});
        });
+    });
+    
+    socket.on("see who has",(data) =>{
+        MongoClient.connect(url, (err,db)=>{
+           if(err)
+             console.log(err);
+           console.log("seeing who has " + data.isbn);
+           var users = db.collection('users');
+           var findAll = ()=>{
+               users.find({books: data.isbn},{})
+                    .toArray((err,result)=>{
+                        if(err)
+                         console.log(err);
+                        else
+                        {
+                           //console.log("result: " + JSON.stringify(result));
+                           socket.emit("send users",{users: result});
+                           db.close();
+                        }
+                    });
+           }
+           findAll(db);
+        });
     });
     
     socket.on('add book',(data)=>{
@@ -106,6 +132,39 @@ io.on('connection', (socket) => {
           };
           update(db,()=>{db.close();});
        });  
+    });
+    
+    socket.on('push trade',(data)=>{
+        MongoClient.connect(url, (err,db)=>{
+          if(err)
+            console.log(err);
+          console.log("sending trade from " + data.from + " to " + data.to);
+          var users = db.collection('users');
+          var updateTo = () => {
+            console.log("pushing pending trades");  
+            users.update({_id: data.to},
+                         {$push: {pending_trades: 
+                                 {
+                                  from: data.from,
+                                  offer: data.offer,
+                                  for: data.for
+                                 }
+                         }});
+             updateFor(db,()=>{db.close();});             
+          };
+          var updateFor = () => {
+            console.log("pushing sent offers");  
+            users.update({_id: data.from},
+                         {$push: {sent_offers: 
+                                 {
+                                  to: data.to,
+                                  offer: data.offer,
+                                  for: data.for
+                                 }
+                         }});              
+          };
+          updateTo(db);
+       }); 
     });
     
     socket.on('disconnect', () => {
