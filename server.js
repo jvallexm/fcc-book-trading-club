@@ -46,11 +46,7 @@ io.on('connection', (socket) => {
         });
        
     });
-    
-    socket.on("confirm swap",(data)=>{
-        
-    });
-    
+
     socket.on("push book", (data)=>{
        MongoClient.connect(url,(err,db)=>{
          if(err)
@@ -169,6 +165,72 @@ io.on('connection', (socket) => {
           };
           updateTo(db);
        }); 
+    });
+    
+        
+    socket.on("confirm swap",(data)=>{
+        console.log("From: " + data.from + " To: " + data.to);
+        console.log("Offer: " + data.offer + "For: " + data.for);
+        MongoClient.connect(url, (err,db)=>{
+           if(err)
+             console.log(err);
+           var users = db.collection('users');
+           var pushOffer = () => {
+             console.log("pushing " + data.offer + " to " + data.to);
+             users.update({_id: data.to},{$push: {books: data.offer}});
+             pushFor(db);
+           };
+           var pushFor = () => {
+             console.log("pushing " + data.for + " to " + data.from);
+             users.update({_id: data.from},{$push: {books: data.for}});
+             pullOffer(db); 
+           };
+           var pullOffer = () => {
+             console.log("pulling " + data.for + " from " + data.to);  
+             users.update({_id: data.to},{$pull: {books: data.for}});
+            // socket.emit("force user update",{force: "update"});  
+             pullFor(db,()=>{db.close();});
+           };
+           var pullFor = () => {
+             console.log("pulling " + data.offer + " from " + data.from);  
+             users.update({_id: data.from},{$pull: {books: data.offer}});  
+           };
+           pushOffer(db);
+        }); 
+    });
+    
+    socket.on("cancel swap",(data)=>{
+        MongoClient.connect(url, (err,db)=>{
+          if(err)
+            console.log(err);
+          console.log("pulling request from " + data.from + " to " + data.to);
+          var users = db.collection('users');
+          var updateTo = () => {
+            console.log("pulling pending trades");  
+            users.update({_id: data.to},
+                         {$pull: {pending_trades: 
+                                 {
+                                  from: data.from,
+                                  offer: data.offer,
+                                  for: data.for
+                                 }
+                         }});
+             updateFor(db,()=>{db.close();});             
+          };
+          var updateFor = () => {
+            console.log("pulling sent offers");  
+            users.update({_id: data.from},
+                         {$pull: {sent_offers: 
+                                 {
+                                  to: data.to,
+                                  offer: data.offer,
+                                  for: data.for
+                                 }
+                         }}); 
+            socket.emit("force user update",{force: "update"});             
+          };
+          updateTo(db);
+       });         
     });
     
     socket.on('disconnect', () => {

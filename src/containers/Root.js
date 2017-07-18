@@ -77,11 +77,17 @@ export default class App extends React.Component
     socket.on("send users",(data)=>{
       this.setState({tradePartners: data.users});
     });
+    socket.on("force user update",()=>{
+      socket.emit("get user data", {
+        user: this.state.userData._id,
+        name: this.state.userData.name
+      });
+    });
   }
   showAllTrades()
   {
     console.log("showing all trades");
-    this.setState({viewAllTrades: true});
+    this.setState({viewAllTrades: true, myBooks: false});
   }
   sendOffer(obj)
   {
@@ -272,7 +278,7 @@ export default class App extends React.Component
                         </div>
                    </div>
                  </div>
-           : <Ding message={this.state.dingMessage} close={this.closeOut}/>}         
+           : this.state.ding ? <Ding message={this.state.dingMessage} close={this.closeOut}/> : ""}         
          </div>
          </div>: ""}
             
@@ -298,13 +304,13 @@ export default class App extends React.Component
               onClick={console.log("sdfadsf")}/>
             : 
             <div>
-                {this.state.viewAllTrades ? <button className="btn-primary"
-                            onClick={this.showAllBooks}>All Books <i className="fa fa-book"/></button>: ""}
-                {!this.state.myBooks
+                 {!this.state.myBooks
                  ?  <button className="btn-success btn-margin"
                           onClick={()=>this.showMyBooks(this.state.books)}>My Books <i className="fa fa-book"/></button>
                  :  <button className="btn-primary"
                             onClick={this.showAllBooks}>All Books <i className="fa fa-book"/></button>}
+                {this.state.viewAllTrades ? <button className="btn-success btn-margin"
+                          onClick={()=>this.showMyBooks(this.state.books)}>My Books <i className="fa fa-book"/></button> : ""}            
                 {this.state.myBooks ?            
                 <button className="btn-success btn-margin"
                         onClick={this.addNewBook}>Add a Book <i className="fa fa-archive"/></button>  : ""}
@@ -351,6 +357,29 @@ class TradeView extends App
   constructor(props)
   {
     super(props);
+    this.cancelTrade = this.cancelTrade.bind(this);
+    this.confirmTrade = this.confirmTrade.bind(this);
+  }
+  confirmTrade(from,to,offer,ffor)
+  {
+    let toCancel = {
+      to: to,
+      from: from,
+      offer: offer,
+      for: ffor
+    };
+    socket.emit("confirm swap", toCancel);
+    socket.emit("cancel swap", toCancel);
+  }
+  cancelTrade(to,from,offer,ffor)
+  {
+    let toCancel = {
+      to: to,
+      from: from,
+      offer: offer,
+      for: ffor
+    };
+    socket.emit("cancel swap", toCancel);
   }
   render()
   {
@@ -379,7 +408,8 @@ class TradeView extends App
                    )}</strong>
               </div>
               <div className="col-md-1">
-                 <button className="btn-primary">Accept</button>
+                 <button className="btn-primary"
+                          onClick={()=>this.confirmTrade(d.from,this.props.userData._id,d.offer,d.for)}>Accept</button>
               </div>
             </div>
           )}
@@ -405,7 +435,8 @@ class TradeView extends App
                    )}</strong>
               </div>
               <div className="col-md-1">
-                 <button className="btn-danger">Cancel</button>
+                 <button className="btn-danger"
+                         onClick={()=>this.cancelTrade(d.to,this.props.userData._id,d.offer,d.for)}>Cancel</button>
               </div>
             </div>
           )}

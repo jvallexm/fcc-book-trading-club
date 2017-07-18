@@ -16330,12 +16330,18 @@ var App = function (_React$Component) {
       socket.on("send users", function (data) {
         _this2.setState({ tradePartners: data.users });
       });
+      socket.on("force user update", function () {
+        socket.emit("get user data", {
+          user: _this2.state.userData._id,
+          name: _this2.state.userData.name
+        });
+      });
     }
   }, {
     key: 'showAllTrades',
     value: function showAllTrades() {
       console.log("showing all trades");
-      this.setState({ viewAllTrades: true });
+      this.setState({ viewAllTrades: true, myBooks: false });
     }
   }, {
     key: 'sendOffer',
@@ -16546,7 +16552,7 @@ var App = function (_React$Component) {
                   )
                 )
               )
-            ) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Ding, { message: this.state.dingMessage, close: this.closeOut })
+            ) : this.state.ding ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Ding, { message: this.state.dingMessage, close: this.closeOut }) : ""
           )
         ) : "",
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16578,13 +16584,6 @@ var App = function (_React$Component) {
               onClick: console.log("sdfadsf") }) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
               null,
-              this.state.viewAllTrades ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-                'button',
-                { className: 'btn-primary',
-                  onClick: this.showAllBooks },
-                'All Books ',
-                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-book' })
-              ) : "",
               !this.state.myBooks ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
                 { className: 'btn-success btn-margin',
@@ -16600,6 +16599,15 @@ var App = function (_React$Component) {
                 'All Books ',
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-book' })
               ),
+              this.state.viewAllTrades ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'button',
+                { className: 'btn-success btn-margin',
+                  onClick: function onClick() {
+                    return _this3.showMyBooks(_this3.state.books);
+                  } },
+                'My Books ',
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-book' })
+              ) : "",
               this.state.myBooks ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
                 { className: 'btn-success btn-margin',
@@ -16668,10 +16676,37 @@ var TradeView = function (_App) {
   function TradeView(props) {
     _classCallCheck(this, TradeView);
 
-    return _possibleConstructorReturn(this, (TradeView.__proto__ || Object.getPrototypeOf(TradeView)).call(this, props));
+    var _this4 = _possibleConstructorReturn(this, (TradeView.__proto__ || Object.getPrototypeOf(TradeView)).call(this, props));
+
+    _this4.cancelTrade = _this4.cancelTrade.bind(_this4);
+    _this4.confirmTrade = _this4.confirmTrade.bind(_this4);
+    return _this4;
   }
 
   _createClass(TradeView, [{
+    key: 'confirmTrade',
+    value: function confirmTrade(from, to, offer, ffor) {
+      var toCancel = {
+        to: to,
+        from: from,
+        offer: offer,
+        for: ffor
+      };
+      socket.emit("confirm swap", toCancel);
+      socket.emit("cancel swap", toCancel);
+    }
+  }, {
+    key: 'cancelTrade',
+    value: function cancelTrade(to, from, offer, ffor) {
+      var toCancel = {
+        to: to,
+        from: from,
+        offer: offer,
+        for: ffor
+      };
+      socket.emit("cancel swap", toCancel);
+    }
+  }, {
     key: 'render',
     value: function render() {
       var _this5 = this;
@@ -16725,7 +16760,10 @@ var TradeView = function (_App) {
               { className: 'col-md-1' },
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
-                { className: 'btn-primary' },
+                { className: 'btn-primary',
+                  onClick: function onClick() {
+                    return _this5.confirmTrade(d.from, _this5.props.userData._id, d.offer, d.for);
+                  } },
                 'Accept'
               )
             )
@@ -16777,7 +16815,10 @@ var TradeView = function (_App) {
               { className: 'col-md-1' },
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
-                { className: 'btn-danger' },
+                { className: 'btn-danger',
+                  onClick: function onClick() {
+                    return _this5.cancelTrade(d.to, _this5.props.userData._id, d.offer, d.for);
+                  } },
                 'Cancel'
               )
             )
