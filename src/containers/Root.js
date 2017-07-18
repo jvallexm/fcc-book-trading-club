@@ -31,7 +31,8 @@ export default class App extends React.Component
         tradePartners: [],
         myBooksObj: [],
         ding: false,
-        dingMessage: ""
+        dingMessage: "",
+        viewAllTrades: false
       };
     this.grayDisplay = this.grayDisplay.bind(this);
     this.closeOut = this.closeOut.bind(this);
@@ -46,6 +47,7 @@ export default class App extends React.Component
     this.addNewBook = this.addNewBook.bind(this);
     this.sendToTrade = this.sendToTrade.bind(this);
     this.sendOffer = this.sendOffer.bind(this);
+    this.showAllTrades = this.showAllTrades.bind(this);
   }
   componentWillMount()
   {
@@ -75,6 +77,11 @@ export default class App extends React.Component
     socket.on("send users",(data)=>{
       this.setState({tradePartners: data.users});
     });
+  }
+  showAllTrades()
+  {
+    console.log("showing all trades");
+    this.setState({viewAllTrades: true});
   }
   sendOffer(obj)
   {
@@ -127,7 +134,7 @@ export default class App extends React.Component
   showAllBooks()
   {
     this.makeGrid(this.state.books);
-    this.setState({myBooks: false});
+    this.setState({myBooks: false, viewAllTrades: false});
   }
   showMyBooks(books)
   {
@@ -141,7 +148,7 @@ export default class App extends React.Component
       }
     }  
     this.makeGrid(myBooks);
-    this.setState({myBooks: true});
+    this.setState({myBooks: true, viewAllTrades: false});
   }
   addToCollection(isbn)
   {
@@ -244,6 +251,7 @@ export default class App extends React.Component
                       tradePartners = {this.state.tradePartners}
                       myBooksObj = {this.state.myBooksObj}
                       sendOffer = {this.sendOffer}/>
+                      
             : this.state.addBook && !this.state.ding ?
                 <div id={"search-view"}>
                    <div className="blue-lob">
@@ -290,6 +298,8 @@ export default class App extends React.Component
               onClick={console.log("sdfadsf")}/>
             : 
             <div>
+                {this.state.viewAllTrades ? <button className="btn-primary"
+                            onClick={this.showAllBooks}>All Books <i className="fa fa-book"/></button>: ""}
                 {!this.state.myBooks
                  ?  <button className="btn-success btn-margin"
                           onClick={()=>this.showMyBooks(this.state.books)}>My Books <i className="fa fa-book"/></button>
@@ -298,13 +308,23 @@ export default class App extends React.Component
                 {this.state.myBooks ?            
                 <button className="btn-success btn-margin"
                         onClick={this.addNewBook}>Add a Book <i className="fa fa-archive"/></button>  : ""}
-                <button className="btn-primary">Pending Trades <i className="fa fa-exchange"/></button>
+                {!this.state.viewAllTrades ?
+                <button className="btn-primary"
+                        onClick={this.showAllTrades}>Pending Trades <i className="fa fa-exchange"/></button>: ""}
                 <button className="btn-primary">Settings <i className="fa fa-gears"/></button>
             </div>  
           }    
-        </div>  
+        </div>
         
-        {this.state.booksGrid.map((col,i)=>
+        
+        
+        {this.state.loggedIn && this.state.userData!=undefined && this.state.viewAllTrades ?
+         <div>
+         <TradeView userData={this.state.userData}
+                    books = {this.state.books}/>
+         </div>            
+         :
+         this.state.booksGrid.map((col,i)=>
             <div className="row" key={"col" + i}>                        
               {col.map((row,ii)=>
                 <div className="col-md-2">
@@ -322,6 +342,76 @@ export default class App extends React.Component
         </div>  
       </div>  
       );
+  }
+}
+
+
+class TradeView extends App
+{
+  constructor(props)
+  {
+    super(props);
+  }
+  render()
+  {
+    return(
+
+      <div id={"trade-view"}>
+          <h4>Pending Trades</h4>
+          {this.props.userData.pending_trades.map((d,i)=>
+            <div className="row trade-btn" key={d+i+"f"}>
+              <div className="col-md-2 middle-text">
+                 {d.from}
+              </div>
+              <div className="col-md-4 middle-text">
+                 <strong>{
+                   this.props.books.map((da,i)=>
+                     (da.isbn == d.offer) ? da.name : ""
+                   )}</strong>
+              </div>
+              <div className="col-md-1 green middle-text">
+                 <i className="fa fa-exchange"/>
+              </div>
+              <div className="col-md-4 middle-text">
+                 <strong>{
+                   this.props.books.map((da,i)=>
+                     (da.isbn == d.for) ? da.name : ""
+                   )}</strong>
+              </div>
+              <div className="col-md-1">
+                 <button className="btn-primary">Accept</button>
+              </div>
+            </div>
+          )}
+          <h4>Sent Offers</h4>
+          {this.props.userData.sent_offers.map((d,i)=>
+            <div className="row trade-btn" key={d+i+"g"}>
+              <div className="col-md-2 middle-text">
+                 {d.to}
+              </div>
+              <div className="col-md-4 middle-text">
+                 <strong>{
+                   this.props.books.map((da,i)=>
+                     (da.isbn == d.offer) ? da.name : ""
+                   )}</strong>
+              </div>
+              <div className="col-md-1 green middle-text">
+                 <i className="fa fa-exchange"/>
+              </div>
+              <div className="col-md-4 middle-text">
+                 <strong>{
+                   this.props.books.map((da,i)=>
+                     (da.isbn == d.for) ? da.name : ""
+                   )}</strong>
+              </div>
+              <div className="col-md-1">
+                 <button className="btn-danger">Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
+ 
+    );
   }
 }
 

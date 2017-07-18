@@ -47,6 +47,10 @@ io.on('connection', (socket) => {
        
     });
     
+    socket.on("confirm swap",(data)=>{
+        
+    });
+    
     socket.on("push book", (data)=>{
        MongoClient.connect(url,(err,db)=>{
          if(err)

@@ -16287,7 +16287,8 @@ var App = function (_React$Component) {
       tradePartners: [],
       myBooksObj: [],
       ding: false,
-      dingMessage: ""
+      dingMessage: "",
+      viewAllTrades: false
     };
     _this.grayDisplay = _this.grayDisplay.bind(_this);
     _this.closeOut = _this.closeOut.bind(_this);
@@ -16302,6 +16303,7 @@ var App = function (_React$Component) {
     _this.addNewBook = _this.addNewBook.bind(_this);
     _this.sendToTrade = _this.sendToTrade.bind(_this);
     _this.sendOffer = _this.sendOffer.bind(_this);
+    _this.showAllTrades = _this.showAllTrades.bind(_this);
     return _this;
   }
 
@@ -16328,6 +16330,12 @@ var App = function (_React$Component) {
       socket.on("send users", function (data) {
         _this2.setState({ tradePartners: data.users });
       });
+    }
+  }, {
+    key: 'showAllTrades',
+    value: function showAllTrades() {
+      console.log("showing all trades");
+      this.setState({ viewAllTrades: true });
     }
   }, {
     key: 'sendOffer',
@@ -16377,7 +16385,7 @@ var App = function (_React$Component) {
     key: 'showAllBooks',
     value: function showAllBooks() {
       this.makeGrid(this.state.books);
-      this.setState({ myBooks: false });
+      this.setState({ myBooks: false, viewAllTrades: false });
     }
   }, {
     key: 'showMyBooks',
@@ -16389,7 +16397,7 @@ var App = function (_React$Component) {
         }
       }
       this.makeGrid(myBooks);
-      this.setState({ myBooks: true });
+      this.setState({ myBooks: true, viewAllTrades: false });
     }
   }, {
     key: 'addToCollection',
@@ -16570,6 +16578,13 @@ var App = function (_React$Component) {
               onClick: console.log("sdfadsf") }) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
               null,
+              this.state.viewAllTrades ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'button',
+                { className: 'btn-primary',
+                  onClick: this.showAllBooks },
+                'All Books ',
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-book' })
+              ) : "",
               !this.state.myBooks ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
                 { className: 'btn-success btn-margin',
@@ -16592,12 +16607,13 @@ var App = function (_React$Component) {
                 'Add a Book ',
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-archive' })
               ) : "",
-              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              !this.state.viewAllTrades ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
-                { className: 'btn-primary' },
+                { className: 'btn-primary',
+                  onClick: this.showAllTrades },
                 'Pending Trades ',
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-exchange' })
-              ),
+              ) : "",
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
                 { className: 'btn-primary' },
@@ -16606,7 +16622,12 @@ var App = function (_React$Component) {
               )
             )
           ),
-          this.state.booksGrid.map(function (col, i) {
+          this.state.loggedIn && this.state.userData != undefined && this.state.viewAllTrades ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'div',
+            null,
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(TradeView, { userData: this.state.userData,
+              books: this.state.books })
+          ) : this.state.booksGrid.map(function (col, i) {
             return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
               { className: 'row', key: "col" + i },
@@ -16641,8 +16662,136 @@ var App = function (_React$Component) {
 var _default = App;
 /* harmony default export */ __webpack_exports__["a"] = _default;
 
-var Ding = function (_App) {
-  _inherits(Ding, _App);
+var TradeView = function (_App) {
+  _inherits(TradeView, _App);
+
+  function TradeView(props) {
+    _classCallCheck(this, TradeView);
+
+    return _possibleConstructorReturn(this, (TradeView.__proto__ || Object.getPrototypeOf(TradeView)).call(this, props));
+  }
+
+  _createClass(TradeView, [{
+    key: 'render',
+    value: function render() {
+      var _this5 = this;
+
+      return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        'div',
+        { id: "trade-view" },
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          'h4',
+          null,
+          'Pending Trades'
+        ),
+        this.props.userData.pending_trades.map(function (d, i) {
+          return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'div',
+            { className: 'row trade-btn', key: d + i + "f" },
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-md-2 middle-text' },
+              d.from
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-md-4 middle-text' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'strong',
+                null,
+                _this5.props.books.map(function (da, i) {
+                  return da.isbn == d.offer ? da.name : "";
+                })
+              )
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-md-1 green middle-text' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-exchange' })
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-md-4 middle-text' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'strong',
+                null,
+                _this5.props.books.map(function (da, i) {
+                  return da.isbn == d.for ? da.name : "";
+                })
+              )
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-md-1' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'button',
+                { className: 'btn-primary' },
+                'Accept'
+              )
+            )
+          );
+        }),
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          'h4',
+          null,
+          'Sent Offers'
+        ),
+        this.props.userData.sent_offers.map(function (d, i) {
+          return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'div',
+            { className: 'row trade-btn', key: d + i + "g" },
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-md-2 middle-text' },
+              d.to
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-md-4 middle-text' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'strong',
+                null,
+                _this5.props.books.map(function (da, i) {
+                  return da.isbn == d.offer ? da.name : "";
+                })
+              )
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-md-1 green middle-text' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-exchange' })
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-md-4 middle-text' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'strong',
+                null,
+                _this5.props.books.map(function (da, i) {
+                  return da.isbn == d.for ? da.name : "";
+                })
+              )
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-md-1' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'button',
+                { className: 'btn-danger' },
+                'Cancel'
+              )
+            )
+          );
+        })
+      );
+    }
+  }]);
+
+  return TradeView;
+}(App);
+
+var Ding = function (_App2) {
+  _inherits(Ding, _App2);
 
   function Ding(props) {
     _classCallCheck(this, Ding);
@@ -16696,6 +16845,8 @@ var _temp = function () {
   __REACT_HOT_LOADER__.register(searchBack, 'searchBack', '/home/ubuntu/workspace/src/containers/Root.js');
 
   __REACT_HOT_LOADER__.register(App, 'App', '/home/ubuntu/workspace/src/containers/Root.js');
+
+  __REACT_HOT_LOADER__.register(TradeView, 'TradeView', '/home/ubuntu/workspace/src/containers/Root.js');
 
   __REACT_HOT_LOADER__.register(Ding, 'Ding', '/home/ubuntu/workspace/src/containers/Root.js');
 
