@@ -16183,7 +16183,7 @@ var App = function (_React$Component) {
       books: [],
       booksGrid: [],
       grayOut: false,
-      whichBook: undefined,
+      whichBook: { name: "placeholder", description: "a placeholder book", isbn: "fitty", _id: 12, authors: [] },
       search: "",
       message: "",
       newest: true,
@@ -16192,7 +16192,8 @@ var App = function (_React$Component) {
       userData: undefined,
       userBooks: ["none"],
       user: undefined,
-      myBooks: false
+      myBooks: false,
+      addBook: false
     };
     _this.grayDisplay = _this.grayDisplay.bind(_this);
     _this.closeOut = _this.closeOut.bind(_this);
@@ -16204,6 +16205,7 @@ var App = function (_React$Component) {
     _this.addToCollection = _this.addToCollection.bind(_this);
     _this.showMyBooks = _this.showMyBooks.bind(_this);
     _this.showAllBooks = _this.showAllBooks.bind(_this);
+    _this.addNewBook = _this.addNewBook.bind(_this);
     return _this;
   }
 
@@ -16217,17 +16219,21 @@ var App = function (_React$Component) {
         var sortedData = data.data.sort(function (a, b) {
           if (a._id > b._id) return -1;else return 1;
         });
-        if (!_this2.state.myBooks) _this2.makeGrid(sortedData);
+        if (!_this2.state.myBooks) _this2.makeGrid(sortedData);else _this2.showMyBooks(sortedData);
         _this2.setState({ books: sortedData });
       });
       socket.on("force push", function () {
         socket.emit("needs books", { needs: "books" });
-        _this2.setState({ message: "Getting new data.." });
       });
       socket.on("user data", function (data) {
         console.log("getting books: " + data.data.books);
         _this2.setState({ userData: data.data, userBooks: data.data.books });
       });
+    }
+  }, {
+    key: 'addNewBook',
+    value: function addNewBook() {
+      this.setState({ addBook: true, grayOut: true });
     }
   }, {
     key: 'responseFacebook',
@@ -16245,11 +16251,11 @@ var App = function (_React$Component) {
     }
   }, {
     key: 'showMyBooks',
-    value: function showMyBooks() {
+    value: function showMyBooks(books) {
       var myBooks = [];
       for (var j = 0; j < this.state.userBooks.length; j++) {
-        for (var i = 0; i < this.state.books.length; i++) {
-          if (this.state.books[i].isbn == this.state.userBooks[j]) myBooks.push(this.state.books[i]);
+        for (var i = 0; i < books.length; i++) {
+          if (books[i].isbn == this.state.userBooks[j]) myBooks.push(books[i]);
         }
       }
       this.makeGrid(myBooks);
@@ -16268,16 +16274,19 @@ var App = function (_React$Component) {
   }, {
     key: 'getNewBook',
     value: function getNewBook() {
+      if (this.state.search.length < 1) return false;
       __WEBPACK_IMPORTED_MODULE_1_jquery___default.a.getJSON(searchFront + this.state.search + searchBack, function (data) {
         if (data.totalItems == 0) this.setState({ message: "Not found" });
+        if (data == undefined) this.setState({ message: "Error Connecting to Database" });
         var isbnCheck = false;
         for (var i = 0; i < this.state.books.length; i++) {
           if (this.state.books[i].isbn == this.state.search) isbnCheck = true;
         }
-        if (isbnCheck) this.setState({ message: "Duplicate found" });else {
+        if (isbnCheck) this.setState({ message: "This book is already in our system." });else {
           var today = new Date();
           var authors = [];
           if (data.items[0].volumeInfo.authors != undefined) authors = data.items[0].volumeInfo.authors;
+          //console.log(data.items[0].volumeInfo);
           socket.emit("push book", {
             _id: Math.floor(today.getTime() / 1000),
             authors: authors,
@@ -16286,7 +16295,8 @@ var App = function (_React$Component) {
             image: data.items[0].volumeInfo.imageLinks.thumbnail,
             isbn: this.state.search
           });
-          this.setState({ message: "Found!!" });
+          this.addToCollection(this.state.search);
+          this.setState({ message: "Found!!", addBook: false, grayOut: false });
         }
       }.bind(this));
     }
@@ -16313,7 +16323,7 @@ var App = function (_React$Component) {
   }, {
     key: 'closeOut',
     value: function closeOut() {
-      this.setState({ grayOut: false });
+      this.setState({ grayOut: false, addBook: false });
     }
   }, {
     key: 'handleChange',
@@ -16341,11 +16351,60 @@ var App = function (_React$Component) {
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'div',
             { className: 'text-center container-fluid' },
-            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_4__BookView_js__["a" /* default */], { book: this.state.whichBook,
+            !this.state.addBook ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_4__BookView_js__["a" /* default */], { book: this.state.whichBook,
               close: this.closeOut,
               loggedIn: this.state.loggedIn,
               addOne: this.addToCollection,
-              userBooks: this.state.userBooks })
+              userBooks: this.state.userBooks }) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { id: "search-view" },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'div',
+                { className: 'blue-lob' },
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  'h3',
+                  null,
+                  'Add a New Book to Your Collection'
+                )
+              ),
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'div',
+                null,
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  'strong',
+                  null,
+                  this.state.message
+                )
+              ),
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'div',
+                { className: 'middle-text' },
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  'div',
+                  { className: 'lilpad' },
+                  'Search by ISBN: ',
+                  __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('input', { placeholder: "ISBN 13",
+                    value: this.state.search,
+                    onChange: this.handleChange })
+                ),
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  'div',
+                  { className: 'lilpad' },
+                  __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                    'button',
+                    { className: 'btn btn-primary',
+                      onClick: this.getNewBook },
+                    'Submit'
+                  ),
+                  __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                    'button',
+                    { className: 'btn btn-danger',
+                      onClick: this.closeOut },
+                    'Cancel'
+                  )
+                )
+              )
+            )
           )
         ) : "",
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16379,17 +16438,26 @@ var App = function (_React$Component) {
               null,
               !this.state.myBooks ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
-                { className: 'btn-success',
-                  onClick: this.showMyBooks },
+                { className: 'btn-success btn-margin',
+                  onClick: function onClick() {
+                    return _this3.showMyBooks(_this3.state.books);
+                  } },
                 'My Books ',
-                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-archive' })
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-book' })
               ) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
-                { className: 'btn-primary btn-margin',
+                { className: 'btn-primary',
                   onClick: this.showAllBooks },
                 'All Books ',
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-book' })
               ),
+              this.state.myBooks ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'button',
+                { className: 'btn-success',
+                  onClick: this.addNewBook },
+                'Add a Book ',
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-archive' })
+              ) : "",
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
                 { className: 'btn-primary' },

@@ -16,7 +16,7 @@ body
   background-color: white;
   width: 152px;
   min-height: 214px;
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 10px;
   padding-bottom: 5px;
   margin:10px;
@@ -27,7 +27,7 @@ body
 }
 img
 {
-  border-radius: 10px;
+  border-radius: 5px;
   margin-bottom: 5px;
     box-shadow: 1px 1px 1px gray,
               -1px 1px 1px gray,
@@ -60,7 +60,7 @@ img
   min-width: 304px;
   max-width: 500px;
   min-height: 214px;
-  border-radius: 20px;
+  border-radius: 10px;
   padding: 10px;
   padding-bottom: 5px;
   margin:10px;
@@ -111,6 +111,10 @@ button
   padding: 10px;
   padding-top: 0px;
 }
+.lilpad
+{
+  padding:10px;
+}
 .margin-10
 {
   margin: 10px;
@@ -118,4 +122,29 @@ button
 .btn-margin
 {
   margin-right: 5px;
+}
+#search-view
+{
+  background-color: white;
+  font-family: "Roboto Condensed";
+  max-width: 500px;
+  border-radius: 5px;
+  padding: 10px;
+  padding-bottom: 5px;
+  margin:10px;
+  box-shadow: 2px 2px 2px gray,
+              -2px 2px 2px gray,
+              2px -2px 2px gray,
+             -2px -2px 2px gray;
+}
+.blue-lob
+{
+  font-family: "Lobster";
+  width: 100%;
+  color: white;
+  padding: 5px;
+  background-color: blue;
+  text-shadow: 2px 2px 2px black;
+  border-radius: 5px;
+  box-shadow: 1px 1px 1px gray;
 }

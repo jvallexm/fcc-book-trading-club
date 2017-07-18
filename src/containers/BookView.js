@@ -13,7 +13,7 @@ export default class BookView extends React.Component
   }
   componentWillMount()
   {
-    console.log(this.props.userBooks);
+    //console.log(this.props.userBooks);
     let blurb = this.props.book.description.substr(0,140);
     let lastWord = blurb.lastIndexOf(" ");
     blurb = blurb.substr(0,lastWord);

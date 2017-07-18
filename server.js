@@ -51,6 +51,7 @@ io.on('connection', (socket) => {
        MongoClient.connect(url,(err,db)=>{
          if(err)
           throw err;
+         console.log("adding a new book");
          var books = db.collection('books');
          var pushIt = ()=>{
              books.insert(data);

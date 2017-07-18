@@ -17,7 +17,7 @@ export default class App extends React.Component
         books: [],
         booksGrid:[],
         grayOut: false,
-        whichBook: undefined,
+        whichBook: {name: "placeholder",description: "a placeholder book", isbn: "fitty", _id: 12, authors: []},
         search: "",
         message: "",
         newest: true,
@@ -26,8 +26,9 @@ export default class App extends React.Component
         userData: undefined,
         userBooks: ["none"],
         user: undefined,
-        myBooks: false
-      }
+        myBooks: false,
+        addBook: false
+      };
     this.grayDisplay = this.grayDisplay.bind(this);
     this.closeOut = this.closeOut.bind(this);
     this.handleChange = this.handleChange.bind(this);
@@ -38,6 +39,7 @@ export default class App extends React.Component
     this.addToCollection = this.addToCollection.bind(this);
     this.showMyBooks = this.showMyBooks.bind(this);
     this.showAllBooks = this.showAllBooks.bind(this);
+    this.addNewBook = this.addNewBook.bind(this);
   }
   componentWillMount()
   {
@@ -52,16 +54,21 @@ export default class App extends React.Component
        });
        if(!this.state.myBooks)
           this.makeGrid(sortedData);
+       else
+          this.showMyBooks(sortedData);
        this.setState({books: sortedData});
     });
     socket.on("force push",()=>{
       socket.emit("needs books",{needs: "books"});
-      this.setState({message: "Getting new data.."});
     });
     socket.on("user data",(data)=>{
       console.log("getting books: " + data.data.books);
       this.setState({userData: data.data, userBooks: data.data.books});
     });
+  }
+  addNewBook()
+  {
+    this.setState({addBook: true, grayOut: true});
   }
   responseFacebook(response)
   {
@@ -76,15 +83,15 @@ export default class App extends React.Component
     this.makeGrid(this.state.books);
     this.setState({myBooks: false});
   }
-  showMyBooks()
+  showMyBooks(books)
   {
     var myBooks = [];
     for(var j=0;j<this.state.userBooks.length;j++)
     {
-      for(var i=0;i<this.state.books.length;i++)
+      for(var i=0;i<books.length;i++)
       {
-        if(this.state.books[i].isbn == this.state.userBooks[j])
-          myBooks.push(this.state.books[i]);
+        if(books[i].isbn == this.state.userBooks[j])
+          myBooks.push(books[i]);
       }
     }  
     this.makeGrid(myBooks);
@@ -101,9 +108,13 @@ export default class App extends React.Component
   }
   getNewBook()
   {
+    if(this.state.search.length <1)
+      return false;
     $.getJSON(searchFront+this.state.search+searchBack,function(data){
       if(data.totalItems==0)
        this.setState({message: "Not found"});
+      if(data==undefined) 
+       this.setState({message: "Error Connecting to Database"});
       let isbnCheck = false;
       for(var i=0;i<this.state.books.length;i++)
       {
@@ -111,13 +122,14 @@ export default class App extends React.Component
          isbnCheck = true;
       }
       if(isbnCheck)
-       this.setState({message: "Duplicate found"});
+       this.setState({message: "This book is already in our system."});
       else
       {
         let today = new Date();
         let authors = [];
         if(data.items[0].volumeInfo.authors!=undefined)
           authors = data.items[0].volumeInfo.authors;
+        //console.log(data.items[0].volumeInfo);
         socket.emit("push book",{
           _id: Math.floor(today.getTime()/1000),
           authors: authors,
@@ -125,8 +137,9 @@ export default class App extends React.Component
           description: data.items[0].volumeInfo.description,
           image:  data.items[0].volumeInfo.imageLinks.thumbnail,
           isbn: this.state.search
-        })
-        this.setState({message: "Found!!"});
+        });
+        this.addToCollection(this.state.search);
+        this.setState({message: "Found!!", addBook: false, grayOut: false});
       }  
     }.bind(this));
   }
@@ -152,7 +165,7 @@ export default class App extends React.Component
   }
   closeOut()
   {
-    this.setState({grayOut: false});
+    this.setState({grayOut: false, addBook: false});
   }
   handleChange(e)
   {
@@ -172,11 +185,35 @@ export default class App extends React.Component
         <div id={"gray-out"}
              className="text-center container-fluid">
          <div className="text-center container-fluid">    
-           <BookView book={this.state.whichBook} 
-                     close={this.closeOut}
-                     loggedIn={this.state.loggedIn}
-                     addOne={this.addToCollection}
-                     userBooks={this.state.userBooks}/>  
+           {!this.state.addBook ?
+           
+            <BookView book={this.state.whichBook} 
+                      close={this.closeOut}
+                      loggedIn={this.state.loggedIn}
+                      addOne={this.addToCollection}
+                      userBooks={this.state.userBooks}/>
+            : 
+                <div id={"search-view"}>
+                   <div className="blue-lob">
+                   <h3>Add a New Book to Your Collection</h3>
+                   </div>  
+                   <div><strong>{this.state.message}</strong></div>
+                   <div className="middle-text">
+                        <div className="lilpad">
+                        Search by ISBN: <input placeholder={"ISBN 13"} 
+                                              value={this.state.search}
+                                              onChange={this.handleChange}/>
+                        </div>
+                        <div className="lilpad">
+                          <button className="btn btn-primary"   
+                                onClick={this.getNewBook}>Submit</button>    
+                           <button className="btn btn-danger"
+                                   onClick={this.closeOut}>Cancel</button>
+                        </div>
+                   </div>
+                 </div>
+     
+           }         
          </div>
          </div>: ""}
             
@@ -203,31 +240,18 @@ export default class App extends React.Component
             : 
             <div>
                 {!this.state.myBooks
-                 ?  <button className="btn-success"
-                          onClick={this.showMyBooks}>My Books <i className="fa fa-archive"/></button>
-                 :  <button className="btn-primary btn-margin"
+                 ?  <button className="btn-success btn-margin"
+                          onClick={()=>this.showMyBooks(this.state.books)}>My Books <i className="fa fa-book"/></button>
+                 :  <button className="btn-primary"
                             onClick={this.showAllBooks}>All Books <i className="fa fa-book"/></button>}
+                {this.state.myBooks ?            
+                <button className="btn-success btn-margin"
+                        onClick={this.addNewBook}>Add a Book <i className="fa fa-archive"/></button>  : ""}
                 <button className="btn-primary">Pending Trades <i className="fa fa-exchange"/></button>
                 <button className="btn-primary">Settings <i className="fa fa-gears"/></button>
             </div>  
           }    
         </div>  
-        
-      {/*  <h1>{this.state.message}</h1>
-        <input placeholder={"ISBN 13"} 
-               value={this.state.search}
-               onChange={this.handleChange}/>
-        <button className="btn btn-primary"
-                onClick={this.getNewBook}>Submit</button><br />
-       {/* <div>
-          <button className="btn-primary"
-                  onClick={()=>this.sortBooks("_id",false)}>
-            {this.state.newest ? "Oldest First" : "Newest First"}
-          </button>
-          <button className="btn-primary">
-            {this.state.aToZ ? "Sort by Title Z-A" : "Sort by Title A-Z"}
-          </button>
-        </div>*/}
         
         {this.state.booksGrid.map((col,i)=>
             <div className="row" key={"col" + i}>                        
