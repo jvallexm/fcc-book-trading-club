@@ -4,7 +4,8 @@ import FacebookLogin from 'react-facebook-login';
 import io from 'socket.io-client';
 const socket=io();
 const searchFront = 'https://www.googleapis.com/books/v1/volumes?q=isbn:';
-const searchBack = '&key=AIzaSyA07NHdSXAhv8cLIyND8qsb4Uvwt0-DVgE'
+const searchBack = '&key=AIzaSyA07NHdSXAhv8cLIyND8qsb4Uvwt0-DVgE';
+import BookView from './BookView.js';
 
 export default class App extends React.Component
 {
@@ -24,7 +25,8 @@ export default class App extends React.Component
         loggedIn: false,
         userData: undefined,
         userBooks: ["none"],
-        user: undefined
+        user: undefined,
+        myBooks: false
       }
     this.grayDisplay = this.grayDisplay.bind(this);
     this.closeOut = this.closeOut.bind(this);
@@ -34,6 +36,8 @@ export default class App extends React.Component
     this.sortBooks = this.sortBooks.bind(this);
     this.responseFacebook = this.responseFacebook.bind(this);
     this.addToCollection = this.addToCollection.bind(this);
+    this.showMyBooks = this.showMyBooks.bind(this);
+    this.showAllBooks = this.showAllBooks.bind(this);
   }
   componentWillMount()
   {
@@ -46,8 +50,8 @@ export default class App extends React.Component
          else
           return 1;
        });
-       this.state.books = sortedData;
-       this.makeGrid();
+       if(!this.state.myBooks)
+          this.makeGrid(sortedData);
        this.setState({books: sortedData});
     });
     socket.on("force push",()=>{
@@ -66,6 +70,25 @@ export default class App extends React.Component
                  name: response.name  
                 });
     this.setState({user: response, loggedIn: true});
+  }
+  showAllBooks()
+  {
+    this.makeGrid(this.state.books);
+    this.setState({myBooks: false});
+  }
+  showMyBooks()
+  {
+    var myBooks = [];
+    for(var j=0;j<this.state.userBooks.length;j++)
+    {
+      for(var i=0;i<this.state.books.length;i++)
+      {
+        if(this.state.books[i].isbn == this.state.userBooks[j])
+          myBooks.push(this.state.books[i]);
+      }
+    }  
+    this.makeGrid(myBooks);
+    this.setState({myBooks: true});
   }
   addToCollection(isbn)
   {
@@ -107,14 +130,14 @@ export default class App extends React.Component
       }  
     }.bind(this));
   }
-  makeGrid()
+  makeGrid(data)
   {
     let columns=[];
     let row=[];
-    for(var i=0;i<this.state.books.length;i++)
+    for(var i=0;i<data.length;i++)
     {
-      row.push(this.state.books[i]);
-      if(((i+1)%6==0 && i!=0) || i+1 == this.state.books.length)
+      row.push(data[i]);
+      if(((i+1)%6==0 && i!=0) || i+1 == data.length)
       {
         columns.push(row);
         row=[];
@@ -179,7 +202,11 @@ export default class App extends React.Component
               onClick={console.log("sdfadsf")}/>
             : 
             <div>
-                <button className="btn-primary">My Books <i className="fa fa-book"/></button>
+                {!this.state.myBooks
+                 ?  <button className="btn-success"
+                          onClick={this.showMyBooks}>My Books <i className="fa fa-archive"/></button>
+                 :  <button className="btn-primary btn-margin"
+                            onClick={this.showAllBooks}>All Books <i className="fa fa-book"/></button>}
                 <button className="btn-primary">Pending Trades <i className="fa fa-exchange"/></button>
                 <button className="btn-primary">Settings <i className="fa fa-gears"/></button>
             </div>  
@@ -223,85 +250,5 @@ export default class App extends React.Component
   }
 }
 
-class BookView extends App
-{
-  constructor(props)
-  {
-    super(props);
-    this.state ={
-      more: false,
-      blurb: ""
-    };
-    this.moreSwitch = this.moreSwitch.bind(this);
-  }
-  componentWillMount()
-  {
-    console.log(this.props.userBooks);
-    let blurb = this.props.book.description.substr(0,140);
-    let lastWord = blurb.lastIndexOf(" ");
-    blurb = blurb.substr(0,lastWord);
-    this.setState({blurb: blurb});
-  }
-  moreSwitch()
-  {
-    this.setState({more: !this.state.more});
-  }
-  render()
-  {
-    return(
-        <div id={"full-view"} className="text-center middle-text">
-          <div id={"close-window"} 
-                className="x-box">
-            <i className="fa fa-close"
-               onClick={this.props.close}/>
-          </div> 
-           <div className="row">
-             <div className="col-md-3">
-               <img src={this.props.book.image}/>
-             </div> 
-             <div className="col-md-9 middle-text ">
-               
-               <div>
-                 <h5><strong>{this.props.book.name}</strong></h5>
-                 {this.props.book.authors.length > 0
-                 ? <span><strong>By:</strong> {this.props.book.authors.map((d,i)=>
-                 
-                   <span key={d}>{d}{(i+1)<this.props.book.authors.length?",":""} </span>
-                 )}<br/></span>
-                 : ""   
-                 }
-                   <strong>ISBN:</strong> {this.props.book.isbn}     
-                 {this.props.book.description!= undefined? 
-                 <div className="lil-pad">
-                    {this.state.more 
-                    ? <span>{this.props.book.description} <strong onClick={this.moreSwitch}>Less</strong></span>
-                    : <span>{this.state.blurb}...<strong onClick={this.moreSwitch}>More</strong></span>}
-                 </div>  : ""}
-               </div>
-                 
-                 {this.props.loggedIn ?
-                 <div>
-                   <button className="btn-primary">
-                     <i className="fa fa-exchange" /> Trade For This Book
-                   </button>    
-                   { this.props.userBooks.indexOf(this.props.book.isbn) == -1
-                   ? <button className="btn-danger"
-                           onClick={()=>this.props.addOne(this.props.book.isbn)}>
-                     <i className="fa fa-book" /> Add to My Books
-                    </button>  
-                   : <button className="btn-success">
-                     <i className="fa fa-archive" /> In Your Collection
-                    </button>  
-                   }
-                 </div> : <button className="btn-danger" disabled={"disabled"}>
-                     <i className="fa fa-exchange" /> Log In to Trade Books
-                   </button>  }
 
-             </div>  
-           </div>  
-        </div> 
-    );
-    
-  }
-}
 
