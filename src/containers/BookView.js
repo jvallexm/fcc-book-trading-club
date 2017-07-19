@@ -41,12 +41,15 @@ export default class BookView extends React.Component
     let lastWord = blurb.lastIndexOf(" ");
     blurb = blurb.substr(0,lastWord);
     let pend = [];
-    let pending = this.props.userData.sent_offers;
-    for(var i=0;i<pending.length;i++)
+    if(this.props.userData != undefined)
     {
-        if(pending[i].for == this.props.book.isbn)
-          pend.push(pending[i].to);
-    }
+        let pending = this.props.userData.sent_offers;
+        for(var i=0;i<pending.length;i++)
+        {
+            if(pending[i].for == this.props.book.isbn)
+              pend.push(pending[i].to);
+        }
+    }    
     this.setState({blurb: blurb, pendingTrades: pend});
   }
   moreSwitch()

@@ -199,7 +199,7 @@ export default class App extends React.Component
           isbn: this.state.search
         });
         this.addToCollection(this.state.search);
-        this.setState({message: "", addBook: false, ding:true, dingMessage:"Book Added To Your Collection!"});
+        this.setState({message: "", addBook: false, ding:true, dingMessage:"Book Added To Your Collection!", search: ""});
       }  
     }.bind(this));
   }

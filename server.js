@@ -4,8 +4,6 @@ var app = express();
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 var request = require("request");
-// api key AIzaSyA07NHdSXAhv8cLIyND8qsb4Uvwt0-DVgE
-
 var url = 'mongodb://bookbook:fourbooks@ds161742.mlab.com:61742/books';
 
 app.use(express.static(__dirname));

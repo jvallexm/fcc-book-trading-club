@@ -16011,9 +16011,11 @@ var BookView = function (_React$Component) {
       var lastWord = blurb.lastIndexOf(" ");
       blurb = blurb.substr(0, lastWord);
       var pend = [];
-      var pending = this.props.userData.sent_offers;
-      for (var i = 0; i < pending.length; i++) {
-        if (pending[i].for == this.props.book.isbn) pend.push(pending[i].to);
+      if (this.props.userData != undefined) {
+        var pending = this.props.userData.sent_offers;
+        for (var i = 0; i < pending.length; i++) {
+          if (pending[i].for == this.props.book.isbn) pend.push(pending[i].to);
+        }
       }
       this.setState({ blurb: blurb, pendingTrades: pend });
     }
@@ -16442,7 +16444,7 @@ var App = function (_React$Component) {
             isbn: this.state.search
           });
           this.addToCollection(this.state.search);
-          this.setState({ message: "", addBook: false, ding: true, dingMessage: "Book Added To Your Collection!" });
+          this.setState({ message: "", addBook: false, ding: true, dingMessage: "Book Added To Your Collection!", search: "" });
         }
       }.bind(this));
     }
