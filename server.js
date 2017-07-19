@@ -9,11 +9,11 @@ const io = require('socket.io')(server);
 
 app.use(express.static(__dirname));
 
-app.listen(process.env.PORT, function() {
+app.listen(process.env.PORT || 3000, function() {
     console.log('Server listening');
 });
 
-var server = app.listen(process.env.PORT, function() {
+var server = app.listen(process.env.PORT || 3000, function() {
     console.log('Server listening');
 });
 
