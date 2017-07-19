@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 import $ from 'jquery';
 import FacebookLogin from 'react-facebook-login';
 import io from 'socket.io-client';
@@ -7,6 +7,7 @@ const searchFront = 'https://www.googleapis.com/books/v1/volumes?q=isbn:';
 const searchBack = '&key=AIzaSyA07NHdSXAhv8cLIyND8qsb4Uvwt0-DVgE';
 import BookView from './BookView.js';
 import TradeView from './TradeView.js';
+import SettingsView from './TradeView.js';
 
 export default class App extends React.Component
 {
@@ -33,7 +34,8 @@ export default class App extends React.Component
         myBooksObj: [],
         ding: false,
         dingMessage: "",
-        viewAllTrades: false
+        viewAllTrades: false,
+        viewSettings: false
       };
     this.grayDisplay = this.grayDisplay.bind(this);
     this.closeOut = this.closeOut.bind(this);
@@ -49,12 +51,14 @@ export default class App extends React.Component
     this.sendToTrade = this.sendToTrade.bind(this);
     this.sendOffer = this.sendOffer.bind(this);
     this.showAllTrades = this.showAllTrades.bind(this);
+    this.showSettings = this.showSettings.bind(this);
   }
   componentWillMount()
   {
-    
-    if(this.state.books.length==0)
-      socket.emit("needs books",{needs: "books"});
+    App.bookSort("arguments");
+    if(this.state.books != undefined)
+      if(this.state.books.length==0)
+        socket.emit("needs books",{needs: "books"});
     socket.on("get books",(data)=>{
        let sortedData = data.data.sort((a,b)=>{
          if(a._id > b._id)
@@ -86,9 +90,15 @@ export default class App extends React.Component
         name: this.state.userData.name
       });
     });
-    socket.on("pfargtl",(data)=>{
-      console.log("What the pfargtl?? " + data.message);
-    })
+  }
+  static bookSort(books)
+  {
+    console.log("books!");
+  }
+  showSettings()
+  {
+    console.log("showing settings");
+    this.setState({viewSettings: true, grayOut:true});
   }
   showAllTrades()
   {
@@ -175,6 +185,8 @@ export default class App extends React.Component
   {
     if(this.state.search.length <1)
       return false;
+    if(this.state.search == "")
+      return false;
     $.getJSON(searchFront+this.state.search+searchBack,function(data){
       if(data.totalItems==0)
        this.setState({message: "Not found", search:""});
@@ -230,7 +242,7 @@ export default class App extends React.Component
   }
   closeOut()
   {
-    this.setState({grayOut: false, addBook: false, showTrade: false, ding: false, dingMessage:""});
+    this.setState({grayOut: false, addBook: false, showTrade: false, ding: false, dingMessage:"", viewSettings: false});
   }
   handleChange(e)
   {
@@ -250,7 +262,7 @@ export default class App extends React.Component
         <div id={"gray-out"}
              className="text-center container-fluid">
          <div className="text-center container-fluid">    
-           {!this.state.addBook && !this.state.ding ?
+           {!this.state.addBook && !this.state.ding && !this.state.viewSettings?
            
             <BookView book={this.state.whichBook} 
                       close={this.closeOut}
@@ -264,7 +276,7 @@ export default class App extends React.Component
                       myBooksObj = {this.state.myBooksObj}
                       sendOffer = {this.sendOffer}/>
                       
-            : this.state.addBook && !this.state.ding ?
+            : this.state.addBook && !this.state.ding && !this.state.viewSettings?
                 <div id={"search-view"}>
                    <div className="blue-lob">
                    <h3>Add a New Book to Your Collection</h3>
@@ -284,6 +296,9 @@ export default class App extends React.Component
                         </div>
                    </div>
                  </div>
+           : !this.state.ding && this.state.viewSettings
+           ? <SettingsView userData={this.state.userData} 
+                           close={this.closeOut}/>
            : this.state.ding ? <Ding message={this.state.dingMessage} close={this.closeOut}/> : ""}         
          </div>
          </div>: ""}
@@ -307,7 +322,7 @@ export default class App extends React.Component
               autoLoad={true}
               fields="name,picture"
               callback={this.responseFacebook}
-              onClick={console.log("sdfadsf")}/>
+              onClick={console.log("trying to login with facebook")}/>
             : 
             this.state.userData!=undefined ?
             <div>
@@ -330,7 +345,7 @@ export default class App extends React.Component
                         && this.state.userData!=undefined
                         ? this.state.userData.pending_trades.length + " " :""}Pending Trade{this.state.userData.pending_trades.length!=1 && this.state.userData!=undefined ? "s " : " "} 
                         <i className="fa fa-exchange"/></button>: ""}
-                <button className="btn-primary">Settings <i className="fa fa-gears"/></button>
+                <button className="btn-primary" onClick={this.showSettings}>Settings <i className="fa fa-gears"/></button>
             </div>  :""
           }    
         </div>
@@ -365,6 +380,8 @@ export default class App extends React.Component
       );
   }
 }
+
+
 
 class Ding extends App
 {

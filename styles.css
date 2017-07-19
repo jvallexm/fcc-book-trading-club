@@ -187,3 +187,32 @@ option
               2px -2px 2px gray,
              -2px -2px 2px gray;
 }
+#settings-view
+{
+  background-color: white;
+  font-family: "Roboto Condensed";
+  max-width: 500px;
+  border-radius: 5px;
+  padding: 10px;
+  padding-bottom: 5px;
+  margin:10px;
+  box-shadow: 2px 2px 2px gray,
+              -2px 2px 2px gray,
+              2px -2px 2px gray,
+             -2px -2px 2px gray;
+}
+.height100
+{
+  margin-left: -7px;
+  height: 30px;
+}
+.width100
+{
+  width: 100%;
+  text-align: center;
+}
+.error
+{
+  font-weight: bold;
+  color: red;
+}

@@ -16292,7 +16292,8 @@ var App = function (_React$Component) {
       myBooksObj: [],
       ding: false,
       dingMessage: "",
-      viewAllTrades: false
+      viewAllTrades: false,
+      viewSettings: false
     };
     _this.grayDisplay = _this.grayDisplay.bind(_this);
     _this.closeOut = _this.closeOut.bind(_this);
@@ -16308,6 +16309,7 @@ var App = function (_React$Component) {
     _this.sendToTrade = _this.sendToTrade.bind(_this);
     _this.sendOffer = _this.sendOffer.bind(_this);
     _this.showAllTrades = _this.showAllTrades.bind(_this);
+    _this.showSettings = _this.showSettings.bind(_this);
     return _this;
   }
 
@@ -16316,7 +16318,8 @@ var App = function (_React$Component) {
     value: function componentWillMount() {
       var _this2 = this;
 
-      if (this.state.books.length == 0) socket.emit("needs books", { needs: "books" });
+      App.bookSort("arguments");
+      if (this.state.books != undefined) if (this.state.books.length == 0) socket.emit("needs books", { needs: "books" });
       socket.on("get books", function (data) {
         var sortedData = data.data.sort(function (a, b) {
           if (a._id > b._id) return -1;else return 1;
@@ -16342,9 +16345,12 @@ var App = function (_React$Component) {
           name: _this2.state.userData.name
         });
       });
-      socket.on("pfargtl", function (data) {
-        console.log("What the pfargtl?? " + data.message);
-      });
+    }
+  }, {
+    key: 'showSettings',
+    value: function showSettings() {
+      console.log("showing settings");
+      this.setState({ viewSettings: true, grayOut: true });
     }
   }, {
     key: 'showAllTrades',
@@ -16428,6 +16434,7 @@ var App = function (_React$Component) {
     key: 'getNewBook',
     value: function getNewBook() {
       if (this.state.search.length < 1) return false;
+      if (this.state.search == "") return false;
       __WEBPACK_IMPORTED_MODULE_1_jquery___default.a.getJSON(searchFront + this.state.search + searchBack, function (data) {
         if (data.totalItems == 0) this.setState({ message: "Not found", search: "" });
         if (data == undefined) this.setState({ message: "Error Connecting to Database", search: "" });
@@ -16476,7 +16483,7 @@ var App = function (_React$Component) {
   }, {
     key: 'closeOut',
     value: function closeOut() {
-      this.setState({ grayOut: false, addBook: false, showTrade: false, ding: false, dingMessage: "" });
+      this.setState({ grayOut: false, addBook: false, showTrade: false, ding: false, dingMessage: "", viewSettings: false });
     }
   }, {
     key: 'handleChange',
@@ -16502,7 +16509,7 @@ var App = function (_React$Component) {
           __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'div',
             { className: 'text-center container-fluid' },
-            !this.state.addBook && !this.state.ding ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_4__BookView_js__["a" /* default */], { book: this.state.whichBook,
+            !this.state.addBook && !this.state.ding && !this.state.viewSettings ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_4__BookView_js__["a" /* default */], { book: this.state.whichBook,
               close: this.closeOut,
               loggedIn: this.state.loggedIn,
               addOne: this.addToCollection,
@@ -16512,7 +16519,7 @@ var App = function (_React$Component) {
               showTrade: this.state.showTrade,
               tradePartners: this.state.tradePartners,
               myBooksObj: this.state.myBooksObj,
-              sendOffer: this.sendOffer }) : this.state.addBook && !this.state.ding ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              sendOffer: this.sendOffer }) : this.state.addBook && !this.state.ding && !this.state.viewSettings ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
               { id: "search-view" },
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16561,7 +16568,8 @@ var App = function (_React$Component) {
                   )
                 )
               )
-            ) : this.state.ding ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Ding, { message: this.state.dingMessage, close: this.closeOut }) : ""
+            ) : !this.state.ding && this.state.viewSettings ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(SettingsView, { userData: this.state.userData,
+              close: this.closeOut }) : this.state.ding ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(Ding, { message: this.state.dingMessage, close: this.closeOut }) : ""
           )
         ) : "",
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16590,7 +16598,7 @@ var App = function (_React$Component) {
               autoLoad: true,
               fields: 'name,picture',
               callback: this.responseFacebook,
-              onClick: console.log("sdfadsf") }) : this.state.userData != undefined ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              onClick: console.log("trying to login with facebook") }) : this.state.userData != undefined ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
               null,
               !this.state.myBooks && !this.state.viewAllTrades ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16635,7 +16643,7 @@ var App = function (_React$Component) {
               ) : "",
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
-                { className: 'btn-primary' },
+                { className: 'btn-primary', onClick: this.showSettings },
                 'Settings ',
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-gears' })
               )
@@ -16675,6 +16683,11 @@ var App = function (_React$Component) {
         )
       );
     }
+  }], [{
+    key: 'bookSort',
+    value: function bookSort(books) {
+      console.log("books!");
+    }
   }]);
 
   return App;
@@ -16683,8 +16696,185 @@ var App = function (_React$Component) {
 var _default = App;
 /* harmony default export */ __webpack_exports__["a"] = _default;
 
-var Ding = function (_App) {
-  _inherits(Ding, _App);
+var SettingsView = function (_App) {
+  _inherits(SettingsView, _App);
+
+  function SettingsView(props) {
+    _classCallCheck(this, SettingsView);
+
+    var _this4 = _possibleConstructorReturn(this, (SettingsView.__proto__ || Object.getPrototypeOf(SettingsView)).call(this, props));
+
+    _this4.state = {
+      userInfo: {},
+      messages: [],
+      states: ["AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "PR", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"]
+    };
+    _this4.handleSubmit = _this4.handleSubmit.bind(_this4);
+    _this4.handleChange = _this4.handleChange.bind(_this4);
+    return _this4;
+  }
+
+  _createClass(SettingsView, [{
+    key: 'componentWillMount',
+    value: function componentWillMount() {
+      var userData = this.props.userData;
+      console.log(this.props.userData);
+      this.setState({ userInfo: userData });
+    }
+  }, {
+    key: 'handleChange',
+    value: function handleChange(e) {
+      var userInfo = this.state.userInfo;
+      userInfo[e.target.name] = e.target.value;
+      this.setState({ userInfo: userInfo });
+    }
+  }, {
+    key: 'handleSubmit',
+    value: function handleSubmit() {
+      var messages = [];
+      if (this.state.userInfo.name == "") messages.push("User name cannot be blank");
+      if (this.state.userInfo.city == "") messages.push("City cannot be blank");
+      if (this.state.userInfo.state == "-") messages.push("State cannot be blank");
+      if (messages.length > 0) this.setState({ messages: messages });
+      console.log(this.state.userInfo);
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _this5 = this;
+
+      return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+        'div',
+        { id: "settings-view", className: 'text-center container-fluid' },
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          'div',
+          { className: 'blue-lob' },
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'h3',
+            null,
+            'Edit Your User Information ',
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-gears' })
+          )
+        ),
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          'div',
+          { className: this.state.messages.length > 0 ? "lilpad error" : "error" },
+          this.state.messages.map(function (d, i) {
+            return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'p',
+              { key: d + i },
+              d
+            );
+          })
+        ),
+        __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          'div',
+          { className: 'lilpad' },
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'div',
+            { className: 'row' },
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-sm-2' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'strong',
+                null,
+                'Name:'
+              )
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-sm-10' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('input', { placeholder: "Your Name",
+                className: 'width100',
+                value: this.state.userInfo.name,
+                name: "name",
+                onChange: this.handleChange })
+            )
+          ),
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'div',
+            { className: 'row' },
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-sm-2' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'strong',
+                null,
+                'City:'
+              )
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-sm-6' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('input', { placeholder: "City",
+                className: 'width100',
+                value: this.state.userInfo.city,
+                name: "city",
+                onChange: this.handleChange })
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-sm-2' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'strong',
+                null,
+                'State:'
+              )
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'div',
+              { className: 'col-sm-2' },
+              __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                'select',
+                { className: 'height100',
+                  name: "state",
+                  value: this.state.userInfo.State,
+                  onChange: this.handleChange },
+                __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  'option',
+                  { value: null },
+                  '-'
+                ),
+                this.state.states.map(function (d, i) {
+                  return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                    'option',
+                    { value: d,
+                      key: d,
+                      selected: _this5.state.userInfo.state == d ? "selected" : "" },
+                    ' ',
+                    d
+                  );
+                })
+              )
+            )
+          ),
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            'div',
+            { className: 'lilpad' },
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'button',
+              { className: 'btn-primary',
+                onClick: this.handleSubmit },
+              ' Submit '
+            ),
+            __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              'button',
+              { className: 'btn-danger',
+                onClick: this.props.close },
+              ' Cancel '
+            )
+          )
+        )
+      );
+    }
+  }]);
+
+  return SettingsView;
+}(App);
+
+var Ding = function (_App2) {
+  _inherits(Ding, _App2);
 
   function Ding(props) {
     _classCallCheck(this, Ding);
@@ -16738,6 +16928,8 @@ var _temp = function () {
   __REACT_HOT_LOADER__.register(searchBack, 'searchBack', '/home/ubuntu/workspace/src/containers/Root.js');
 
   __REACT_HOT_LOADER__.register(App, 'App', '/home/ubuntu/workspace/src/containers/Root.js');
+
+  __REACT_HOT_LOADER__.register(SettingsView, 'SettingsView', '/home/ubuntu/workspace/src/containers/Root.js');
 
   __REACT_HOT_LOADER__.register(Ding, 'Ding', '/home/ubuntu/workspace/src/containers/Root.js');
 

@@ -76,18 +76,22 @@ io.on('connection', (socket) => {
                      var socketCheck = false;
                      for(var j=0;j<currentUsers.length;j++)
                      {
-                         if(socket.id == currentUser[j].socket)
+                         if(socket.id == currentUsers[j].socket)
                            socketCheck=true;
                      }
                      if(!socketCheck)
-                        currentUsers.push({name: result.name, _id: data.user, socket: socket.id}); 
-                     console.log("user connected: " + result.name)
-                     var userArray = [];
-                     for(var i=0;i<currentUsers.length;i++)
                      {
-                         userArray.push(currentUsers[i].name);
-                     }
-                     console.log(userArray);
+                         currentUsers.push({name: result.name, _id: data.user, socket: socket.id}); 
+                         console.log("user connected: " + result.name)
+                         var userArray = [];
+                         for(var i=0;i<currentUsers.length;i++)
+                         {
+                              userArray.push(currentUsers[i].name);
+                         }
+                         console.log(userArray);
+                     }     
+                     else   
+                       console.log("this user has already connected");
                      console.log("getting user data...");
                      socket.emit("user data",{data: result}); 
                   }
@@ -288,7 +292,6 @@ io.on('connection', (socket) => {
                   console.log("this socket: "  + socket.id);
                   socket.broadcast.to(currentUsers[i].socket).emit("force user update",{force: "update"});
                   socket.broadcast.to(currentUsers[i].socket).emit("force push",{force: "push"});   
-                  socket.broadcast.to(currentUsers[i].socket).emit("pfargtl",{message: "ding"});
                }
             }
             socket.emit("force user update",{force: "update"});
@@ -309,7 +312,7 @@ io.on('connection', (socket) => {
           }      
        }
        console.log('user disconnected: ' + whoDisconnected);
-       console.log("users connected: " + JSON.stringify(currentUsers));
+     //  console.log("users connected: " + JSON.stringify(currentUsers));
     });
     
 
