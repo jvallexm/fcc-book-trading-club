@@ -4,16 +4,19 @@ var app = express();
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 var url = 'mongodb://bookbook:fourbooks@ds161742.mlab.com:61742/books';
+
+
+
+const server = express()
+  .use(express.static(__dirname))
+  .listen(process.env.PORT, () => console.log(`Listening on ${ process.env.PORT }`));
+
+//app.use(express.static(__dirname));
+
+/*var server = app.listen(process.env.PORT, function() {
+    console.log('Server listening');});*/
+
 const io = require('socket.io')(server);
-
-
-app.use(express.static(__dirname));
-
-var server = app.listen(process.env.PORT, function() {
-    console.log('Server listening');
-});
-
-
 
 var currentUsers = [];
 
