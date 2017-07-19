@@ -103,7 +103,7 @@ export default class App extends React.Component
   }
   sendToTrade(isbn)
   {
-    socket.emit("see who has",{isbn: "9781608868094"});
+    socket.emit("see who has",{isbn: isbn});
     var myBooks = [];
     var pendingTrades = [];
     for(var k=0;k<this.state.userData.sent_offers.length;k++)

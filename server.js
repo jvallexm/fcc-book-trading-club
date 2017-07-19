@@ -104,7 +104,7 @@ io.on('connection', (socket) => {
            console.log("seeing who has " + data.isbn);
            var users = db.collection('users');
            var findAll = ()=>{
-               users.find({books: data.isbn},{})
+               users.find({books: {$all: [data.isbn]}},{})
                     .toArray((err,result)=>{
                         if(err)
                          console.log(err);

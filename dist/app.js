@@ -16360,7 +16360,7 @@ var App = function (_React$Component) {
   }, {
     key: 'sendToTrade',
     value: function sendToTrade(isbn) {
-      socket.emit("see who has", { isbn: "9781608868094" });
+      socket.emit("see who has", { isbn: isbn });
       var myBooks = [];
       var pendingTrades = [];
       for (var k = 0; k < this.state.userData.sent_offers.length; k++) {
@@ -16798,11 +16798,23 @@ var TradeView = function (_React$Component) {
         "div",
         { id: "trade-view" },
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-          "h4",
-          null,
-          "Pending Trades"
+          "div",
+          { className: "blue-lob" },
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            "h4",
+            null,
+            "Pending Trades"
+          )
         ),
-        this.props.userData.pending_trades.map(function (d, i) {
+        this.props.userData.pending_trades.length < 1 ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          "div",
+          { className: "row trade-btn" },
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            "div",
+            { className: "col-md-12" },
+            "No pending trades yet."
+          )
+        ) : this.props.userData.pending_trades.map(function (d, i) {
           return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             "div",
             { className: "row trade-btn", key: d + i + "f" },
@@ -16853,11 +16865,23 @@ var TradeView = function (_React$Component) {
           );
         }),
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
-          "h4",
-          null,
-          "Sent Offers"
+          "div",
+          { className: "blue-lob" },
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            "h4",
+            null,
+            "Sent Offers"
+          )
         ),
-        this.props.userData.sent_offers.map(function (d, i) {
+        this.props.userData.sent_offers.length < 1 ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+          "div",
+          { className: "row trade-btn" },
+          __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+            "div",
+            { className: "col-md-12" },
+            "You don't have any sent offers. Go trade some books!"
+          )
+        ) : this.props.userData.sent_offers.map(function (d, i) {
           return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             "div",
             { className: "row trade-btn", key: d + i + "g" },
