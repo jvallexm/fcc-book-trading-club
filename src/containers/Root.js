@@ -7,7 +7,7 @@ const searchFront = 'https://www.googleapis.com/books/v1/volumes?q=isbn:';
 const searchBack = '&key=AIzaSyA07NHdSXAhv8cLIyND8qsb4Uvwt0-DVgE';
 import BookView from './BookView.js';
 import TradeView from './TradeView.js';
-import SettingsView from './TradeView.js';
+import SettingsView from './SettingsView.js';
 
 export default class App extends React.Component
 {
@@ -52,6 +52,7 @@ export default class App extends React.Component
     this.sendOffer = this.sendOffer.bind(this);
     this.showAllTrades = this.showAllTrades.bind(this);
     this.showSettings = this.showSettings.bind(this);
+    this.userUpdated = this.userUpdated.bind(this);
   }
   componentWillMount()
   {
@@ -94,6 +95,10 @@ export default class App extends React.Component
   static bookSort(books)
   {
     console.log("books!");
+  }
+  userUpdated()
+  {
+    this.setState({viewSettings: false, ding: true, dingMessage: "User Info Updated!"});
   }
   showSettings()
   {
@@ -298,7 +303,9 @@ export default class App extends React.Component
                  </div>
            : !this.state.ding && this.state.viewSettings
            ? <SettingsView userData={this.state.userData} 
-                           close={this.closeOut}/>
+                           close={this.closeOut}
+                           socket={socket}
+                           update={this.userUpdated}/>
            : this.state.ding ? <Ding message={this.state.dingMessage} close={this.closeOut}/> : ""}         
          </div>
          </div>: ""}

@@ -222,6 +222,20 @@ io.on('connection', (socket) => {
        }); 
     });
     
+    socket.on("update user",(data)=>{
+       console.log("updating user: " + data._id);
+        MongoClient.connect(url, (err,db)=>{
+           if(err)
+             console.log(err);
+           var users = db.collection('users');
+           var update = () => {
+             users.update({_id: data._id},{$set: {name: data.name, state: data.state, city: data.city}})
+             socket.emit("force user update",{force: "update"});  
+           };
+           update(db,()=>{db.close();});
+           
+        });   
+    });
         
     socket.on("confirm swap",(data)=>{
         console.log("From: " + data.from + " To: " + data.to);

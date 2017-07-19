@@ -21,6 +21,8 @@ export default class SettingsView extends React.Component
   }
   handleChange(e)
   {
+    if(e.target.name == "city" && e.target.value > 30)
+      return false;
     let userInfo = this.state.userInfo;
     userInfo[e.target.name] = e.target.value;
     this.setState({userInfo: userInfo});
@@ -34,9 +36,21 @@ export default class SettingsView extends React.Component
       messages.push("City cannot be blank");
     if(this.state.userInfo.state=="-")
       messages.push("State cannot be blank");
+      
     if(messages.length > 0)
       this.setState({messages: messages});
-    console.log(this.state.userInfo);
+
+     
+    else
+    {
+      this.props.socket.emit("update user",{
+          _id: this.props.userData._id,
+          name: this.state.userInfo.name,
+          city: this.state.userInfo.city,
+          state: this.state.userInfo.state
+      });
+      this.props.update();
+    }
   }
   render()
   {

@@ -124,6 +124,7 @@ export default class BookView extends React.Component
                             <select onChange={this.handleChange}>
                               <option value={null}> - </option>
                               {this.props.myBooksObj.map((dd,i)=>
+                              
                                 <option value={dd.isbn} key={dd.isbn + ii}>
                                   {dd.name.length > 35
                                    ? dd.name.substr(0,32) + "..."
