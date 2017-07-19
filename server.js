@@ -14,7 +14,9 @@ var server = app.listen(process.env.PORT, function() {
     console.log('Server listening');
 });
 
-server;
+app.listen(process.env.PORT, function() {
+    console.log('Server listening');
+});
 
 const io = require('socket.io')(server);
 
