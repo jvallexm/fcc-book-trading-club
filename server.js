@@ -4,6 +4,8 @@ var app = express();
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
 var url = 'mongodb://bookbook:fourbooks@ds161742.mlab.com:61742/books';
+const io = require('socket.io')(server);
+
 
 app.use(express.static(__dirname));
 
@@ -15,7 +17,7 @@ var server = app.listen(process.env.PORT, function() {
     console.log('Server listening');
 });
 
-const io = require('socket.io')(server);
+
 
 var currentUsers = [];
 
