@@ -7,7 +7,9 @@ var url = 'mongodb://bookbook:fourbooks@ds161742.mlab.com:61742/books';
 
 app.use(express.static(__dirname));
 
-
+app.listen(process.env.PORT, function() {
+    console.log('Server listening');
+});
 
 var server = app.listen(process.env.PORT, function() {
     console.log('Server listening');
@@ -334,6 +336,3 @@ io.on('connection', (socket) => {
  
 });
 
-app.listen(process.env.PORT, function() {
-    console.log('Server listening');
-});
