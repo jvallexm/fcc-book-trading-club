@@ -38,8 +38,11 @@ export default class BookView extends React.Component
   {
     //console.log(this.props.userBooks);
     let blurb = this.props.book.description.substr(0,140);
-    let lastWord = blurb.lastIndexOf(" ");
-    blurb = blurb.substr(0,lastWord);
+    if(blurb.length > 140)
+    {
+      let lastWord = blurb.lastIndexOf(" ");
+      blurb = blurb.substr(0,lastWord);
+    }  
     let pend = [];
     if(this.props.userData != undefined)
     {
@@ -85,7 +88,7 @@ export default class BookView extends React.Component
                  <div className="lil-pad blurb">
                     {this.state.more 
                     ? <span>{this.props.book.description} <strong onClick={this.moreSwitch}>Less</strong></span>
-                    : <span>{this.state.blurb}...<strong onClick={this.moreSwitch}>More</strong></span>}
+                    : <span>{this.state.blurb}{this.state.blurb != this.props.book.description ? <strong onClick={this.moreSwitch}>... More</strong> : ""} </span>}
                  </div>  : ""}
                </div>
                  

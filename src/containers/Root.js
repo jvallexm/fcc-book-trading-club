@@ -332,7 +332,7 @@ export default class App extends React.Component
               onClick={console.log("trying to login with facebook")}/>
             : 
             this.state.userData!=undefined ?
-            <div>
+            <div className="margin-top">
                
                  {!this.state.myBooks && !this.state.viewAllTrades
                  ?  <button className="btn-success btn-margin"

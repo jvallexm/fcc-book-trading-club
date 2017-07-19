@@ -92,6 +92,7 @@ button
   border-radius: 5px;
   max-width: 500px;
   background-color: #006dcc;
+  margin-top: 20px;
 }
 .x-box
 {
@@ -215,4 +216,7 @@ option
 {
   font-weight: bold;
   color: red;
+}
+.margin-top
+{
 }

@@ -16008,8 +16008,10 @@ var BookView = function (_React$Component) {
     value: function componentWillMount() {
       //console.log(this.props.userBooks);
       var blurb = this.props.book.description.substr(0, 140);
-      var lastWord = blurb.lastIndexOf(" ");
-      blurb = blurb.substr(0, lastWord);
+      if (blurb.length > 140) {
+        var lastWord = blurb.lastIndexOf(" ");
+        blurb = blurb.substr(0, lastWord);
+      }
       var pend = [];
       if (this.props.userData != undefined) {
         var pending = this.props.userData.sent_offers;
@@ -16106,12 +16108,12 @@ var BookView = function (_React$Component) {
                   "span",
                   null,
                   this.state.blurb,
-                  "...",
-                  __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+                  this.state.blurb != this.props.book.description ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                     "strong",
                     { onClick: this.moreSwitch },
-                    "More"
-                  )
+                    "... More"
+                  ) : "",
+                  " "
                 )
               ) : ""
             ),
@@ -16610,7 +16612,7 @@ var App = function (_React$Component) {
               callback: this.responseFacebook,
               onClick: console.log("trying to login with facebook") }) : this.state.userData != undefined ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
-              null,
+              { className: 'margin-top' },
               !this.state.myBooks && !this.state.viewAllTrades ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
                 { className: 'btn-success btn-margin',
