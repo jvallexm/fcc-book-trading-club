@@ -69,6 +69,7 @@ export default class App extends React.Component
        this.setState({books: sortedData});
     });
     socket.on("force push",()=>{
+      console.log("force books push");
       socket.emit("needs books",{needs: "books"});
     });
     socket.on("user data",(data)=>{
@@ -79,11 +80,15 @@ export default class App extends React.Component
       this.setState({tradePartners: data.users});
     });
     socket.on("force user update",()=>{
+      console.log("forced user update");
       socket.emit("get user data", {
         user: this.state.userData._id,
         name: this.state.userData.name
       });
     });
+    socket.on("pfargtl",(data)=>{
+      console.log("What the pfargtl?? " + data.message);
+    })
   }
   showAllTrades()
   {
@@ -172,9 +177,9 @@ export default class App extends React.Component
       return false;
     $.getJSON(searchFront+this.state.search+searchBack,function(data){
       if(data.totalItems==0)
-       this.setState({message: "Not found"});
+       this.setState({message: "Not found", search:""});
       if(data==undefined) 
-       this.setState({message: "Error Connecting to Database"});
+       this.setState({message: "Error Connecting to Database",search: ""});
       let isbnCheck = false;
       for(var i=0;i<this.state.books.length;i++)
       {
@@ -182,7 +187,7 @@ export default class App extends React.Component
          isbnCheck = true;
       }
       if(isbnCheck)
-       this.setState({message: "This book is already in our system."});
+       this.setState({message: "This book is already in our system.", search: ""});
       else
       {
         let today = new Date();
@@ -304,7 +309,9 @@ export default class App extends React.Component
               callback={this.responseFacebook}
               onClick={console.log("sdfadsf")}/>
             : 
+            this.state.userData!=undefined ?
             <div>
+               
                  {!this.state.myBooks && !this.state.viewAllTrades
                  ?  <button className="btn-success btn-margin"
                           onClick={()=>this.showMyBooks(this.state.books)}>My Books <i className="fa fa-book"/></button>
@@ -316,10 +323,15 @@ export default class App extends React.Component
                 <button className="btn-success btn-margin"
                         onClick={this.addNewBook}>Add a Book <i className="fa fa-archive"/></button>  : ""}
                 {!this.state.viewAllTrades ?
-                <button className="btn-primary"
-                        onClick={this.showAllTrades}>Pending Trades <i className="fa fa-exchange"/></button>: ""}
+                <button className={   this.state.userData.pending_trades.length>0 
+                                   && this.state.userData!=undefined? "btn-danger btn-margin" : "btn-primary"}
+                        onClick={this.showAllTrades}>
+                        {  this.state.userData.pending_trades.length>0 
+                        && this.state.userData!=undefined
+                        ? this.state.userData.pending_trades.length + " " :""}Pending Trade{this.state.userData.pending_trades.length!=1 && this.state.userData!=undefined ? "s " : " "} 
+                        <i className="fa fa-exchange"/></button>: ""}
                 <button className="btn-primary">Settings <i className="fa fa-gears"/></button>
-            </div>  
+            </div>  :""
           }    
         </div>
         
@@ -329,7 +341,8 @@ export default class App extends React.Component
          <div>
          <TradeView userData={this.state.userData}
                     books = {this.state.books}
-                    socket = {socket}/>
+                    socket = {socket}
+                    tradePartners = {this.state.tradePartners}/>
          </div>            
          :
          this.state.booksGrid.map((col,i)=>

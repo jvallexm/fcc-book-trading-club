@@ -14,9 +14,12 @@ var server = app.listen(process.env.PORT, function() {
 
 const io = require('socket.io')(server);
 
+var currentUsers = [];
+
 io.on('connection', (socket) => {
     
-    console.log('someone connected!');
+    console.log("new connection: " + socket.id);
+    //console.log(typeof socket.id);
     socket.on("needs books",()=>{
         console.log("Hey! Someone needs books"); 
         MongoClient.connect(url,(err,db)=>{
@@ -70,13 +73,34 @@ io.on('connection', (socket) => {
                     throw err;
                   if(result)
                   {
+                     var socketCheck = false;
+                     for(var j=0;j<currentUsers.length;j++)
+                     {
+                         if(socket.id == currentUser[j].socket)
+                           socketCheck=true;
+                     }
+                     if(!socketCheck)
+                        currentUsers.push({name: result.name, _id: data.user, socket: socket.id}); 
+                     console.log("user connected: " + result.name)
+                     var userArray = [];
+                     for(var i=0;i<currentUsers.length;i++)
+                     {
+                         userArray.push(currentUsers[i].name);
+                     }
+                     console.log(userArray);
                      console.log("getting user data...");
                      socket.emit("user data",{data: result}); 
                   }
                   else
                   {
-                    console.log("Making new user...");
-                    console.log(data.name);
+                    currentUsers.push({name: data.name, _id: data.user, socket: socket.id});
+                    var userArray = [];
+                     for(var i=0;i<currentUsers.length;i++)
+                     {
+                         userArray.push(currentUsers[i].name);
+                     }
+                    console.log(userArray);
+                    console.log("New user: " + data.name);
                     var newUser = {
                        name: data.name,
                        _id: data.user,
@@ -94,6 +118,30 @@ io.on('connection', (socket) => {
           findOne(db,()=>{db.close();});
        });
     });
+    
+    socket.on("get user names",(data) =>{
+        MongoClient.connect(url, (err,db)=>{
+           if(err)
+             console.log(err);
+           console.log("getting names for: " + data.names);
+           var users = db.collection('users');
+           var findAll = ()=>{
+               users.find({_id: {$in: data.names}},{})
+                    .toArray((err,result)=>{
+                        if(err)
+                         console.log(err);
+                        else
+                        {
+                           //console.log("result: " + JSON.stringify(result));
+                           socket.emit("send users",{users: result});
+                           db.close();
+                        }
+                    });
+           };
+           findAll(db);
+        });
+    });
+    
     
     socket.on("see who has",(data) =>{
         MongoClient.connect(url, (err,db)=>{
@@ -148,6 +196,11 @@ io.on('connection', (socket) => {
                                   for: data.for
                                  }
                          }});
+             for(var i=0;i<currentUsers.length;i++)
+             {
+                if(currentUsers[i]._id == data.to)
+                  socket.broadcast.to(currentUsers[i].socket).emit("force user update",{force: "update"});  
+             }
              updateFor(db,()=>{db.close();});             
           };
           var updateFor = () => {
@@ -186,7 +239,7 @@ io.on('connection', (socket) => {
            var pullOffer = () => {
              console.log("pulling " + data.for + " from " + data.to);  
              users.update({_id: data.to},{$pull: {books: data.for}});
-            // socket.emit("force user update",{force: "update"});  
+            // socket.emit("force user update",{force: "update"}); 
              pullFor(db,()=>{db.close();});
            };
            var pullFor = () => {
@@ -225,15 +278,38 @@ io.on('connection', (socket) => {
                                   for: data.for
                                  }
                          }}); 
+            for(var i=0;i<currentUsers.length;i++)
+            {
+               console.log("user id: " + currentUsers[i]._id);
+               if(currentUsers[i]._id == data.from || currentUsers[i]._id == data.to)
+               {
+                  console.log("yes " + currentUsers[i]._id + " is involved"); 
+                  console.log("current user socket: " + currentUsers[i].socket);
+                  console.log("this socket: "  + socket.id);
+                  socket.broadcast.to(currentUsers[i].socket).emit("force user update",{force: "update"});
+                  socket.broadcast.to(currentUsers[i].socket).emit("force push",{force: "push"});   
+                  socket.broadcast.to(currentUsers[i].socket).emit("pfargtl",{message: "ding"});
+               }
+            }
             socket.emit("force user update",{force: "update"});
-            socket.emit("force push", {force: "push"});
+            socket.emit("force push",{force: "push"});
           };
           updateTo(db);
        });         
     });
     
     socket.on('disconnect', () => {
-       console.log('user disconnected');
+       var whoDisconnected = "";
+       for(var i=0;i<currentUsers.length;i++)
+       {
+          if(socket.id == currentUsers[i].socket)
+          {
+             whoDisconnected = currentUsers[i].name; 
+             currentUsers.splice(i,1);
+          }      
+       }
+       console.log('user disconnected: ' + whoDisconnected);
+       console.log("users connected: " + JSON.stringify(currentUsers));
     });
     
 

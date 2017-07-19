@@ -114,7 +114,7 @@ export default class BookView extends React.Component
              </div>  
            </div>
            <div className="middle-text">
-           {this.props.showTrade ?
+           {this.props.showTrade && this.props.myBooksObj.length>0 ?
                      this.props.tradePartners.map((d,ii)=>
                      
                        <div className="row trade-btn" key={d+ii}>
@@ -142,7 +142,8 @@ export default class BookView extends React.Component
                        </div>
                      )
                        
-                 : ""}
+                 : this.props.showTrade ? "You need to add some books before you can trade!" :
+                 ""}
             </div>     
         </div> 
     );

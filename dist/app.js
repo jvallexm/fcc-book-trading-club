@@ -16152,7 +16152,7 @@ var BookView = function (_React$Component) {
         __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
           "div",
           { className: "middle-text" },
-          this.props.showTrade ? this.props.tradePartners.map(function (d, ii) {
+          this.props.showTrade && this.props.myBooksObj.length > 0 ? this.props.tradePartners.map(function (d, ii) {
             return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               "div",
               { className: "row trade-btn", key: d + ii },
@@ -16207,7 +16207,7 @@ var BookView = function (_React$Component) {
                 )
               )
             );
-          }) : ""
+          }) : this.props.showTrade ? "You need to add some books before you can trade!" : ""
         )
       );
     }
@@ -16325,6 +16325,7 @@ var App = function (_React$Component) {
         _this2.setState({ books: sortedData });
       });
       socket.on("force push", function () {
+        console.log("force books push");
         socket.emit("needs books", { needs: "books" });
       });
       socket.on("user data", function (data) {
@@ -16335,10 +16336,14 @@ var App = function (_React$Component) {
         _this2.setState({ tradePartners: data.users });
       });
       socket.on("force user update", function () {
+        console.log("forced user update");
         socket.emit("get user data", {
           user: _this2.state.userData._id,
           name: _this2.state.userData.name
         });
+      });
+      socket.on("pfargtl", function (data) {
+        console.log("What the pfargtl?? " + data.message);
       });
     }
   }, {
@@ -16424,13 +16429,13 @@ var App = function (_React$Component) {
     value: function getNewBook() {
       if (this.state.search.length < 1) return false;
       __WEBPACK_IMPORTED_MODULE_1_jquery___default.a.getJSON(searchFront + this.state.search + searchBack, function (data) {
-        if (data.totalItems == 0) this.setState({ message: "Not found" });
-        if (data == undefined) this.setState({ message: "Error Connecting to Database" });
+        if (data.totalItems == 0) this.setState({ message: "Not found", search: "" });
+        if (data == undefined) this.setState({ message: "Error Connecting to Database", search: "" });
         var isbnCheck = false;
         for (var i = 0; i < this.state.books.length; i++) {
           if (this.state.books[i].isbn == this.state.search) isbnCheck = true;
         }
-        if (isbnCheck) this.setState({ message: "This book is already in our system." });else {
+        if (isbnCheck) this.setState({ message: "This book is already in our system.", search: "" });else {
           var today = new Date();
           var authors = [];
           if (data.items[0].volumeInfo.authors != undefined) authors = data.items[0].volumeInfo.authors;
@@ -16585,7 +16590,7 @@ var App = function (_React$Component) {
               autoLoad: true,
               fields: 'name,picture',
               callback: this.responseFacebook,
-              onClick: console.log("sdfadsf") }) : __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
+              onClick: console.log("sdfadsf") }) : this.state.userData != undefined ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
               null,
               !this.state.myBooks && !this.state.viewAllTrades ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16621,9 +16626,11 @@ var App = function (_React$Component) {
               ) : "",
               !this.state.viewAllTrades ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 'button',
-                { className: 'btn-primary',
+                { className: this.state.userData.pending_trades.length > 0 && this.state.userData != undefined ? "btn-danger btn-margin" : "btn-primary",
                   onClick: this.showAllTrades },
-                'Pending Trades ',
+                this.state.userData.pending_trades.length > 0 && this.state.userData != undefined ? this.state.userData.pending_trades.length + " " : "",
+                'Pending Trade',
+                this.state.userData.pending_trades.length != 1 && this.state.userData != undefined ? "s " : " ",
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-exchange' })
               ) : "",
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
@@ -16632,14 +16639,15 @@ var App = function (_React$Component) {
                 'Settings ',
                 __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement('i', { className: 'fa fa-gears' })
               )
-            )
+            ) : ""
           ),
           this.state.loggedIn && this.state.userData != undefined && this.state.viewAllTrades ? __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
             'div',
             null,
             __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(__WEBPACK_IMPORTED_MODULE_5__TradeView_js__["a" /* default */], { userData: this.state.userData,
               books: this.state.books,
-              socket: socket })
+              socket: socket,
+              tradePartners: this.state.tradePartners })
           ) : this.state.booksGrid.map(function (col, i) {
             return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               'div',
@@ -16765,10 +16773,42 @@ var TradeView = function (_React$Component) {
 
     _this.cancelTrade = _this.cancelTrade.bind(_this);
     _this.confirmTrade = _this.confirmTrade.bind(_this);
+    _this.state = { badRequests: [] };
     return _this;
   }
 
   _createClass(TradeView, [{
+    key: "componentWillMount",
+    value: function componentWillMount() {
+      var _this2 = this;
+
+      var getNames = [];
+      var badRequests = [];
+      //console.log(this.props.userData);
+      for (var i = 0; i < this.props.userData.sent_offers.length; i++) {
+        if (getNames.indexOf(this.props.userData.sent_offers[i].to) == -1) getNames.push(this.props.userData.sent_offers[i].to);
+        if (this.props.userData.books.indexOf(this.props.userData.sent_offers[i].offer) == -1) badRequests.push({ from: this.props.userData._id, to: this.props.userData.sent_offers[i].to, offer: this.props.userData.sent_offers[i].offer, for: this.props.userData.sent_offers[i].for });
+      }
+      for (var j = 0; j < this.props.userData.pending_trades.length; j++) {
+        if (getNames.indexOf(this.props.userData.pending_trades[j].from) == -1) getNames.push(this.props.userData.pending_trades[j].from);
+      }
+      this.props.socket.emit("get user names", { names: getNames });
+
+      this.props.socket.on("send users", function (data) {
+        //let badRequests = [];
+        for (var k = 0; k < _this2.props.userData.pending_trades.length; k++) {
+          for (var l = 0; l < data.users.length; l++) {
+            if (_this2.props.userData.pending_trades[k].from == data.users[l]._id) {
+              if (_this2.props.userData.books.indexOf(_this2.props.userData.pending_trades[k].for) == -1 || data.users[l].books.indexOf(_this2.props.userData.pending_trades[k].offer) == -1) badRequests.push({ from: data.users[l]._id, to: _this2.props.userData._id, offer: _this2.props.userData.pending_trades[k].offer, for: _this2.props.userData.pending_trades[k].for });
+            }
+          }
+        }
+        for (var m = 0; m < badRequests.length; m++) {
+          _this2.props.socket.emit("cancel swap", badRequests[m]);
+        }
+      });
+    }
+  }, {
     key: "confirmTrade",
     value: function confirmTrade(from, to, offer, ffor) {
       var toCancel = {
@@ -16794,7 +16834,7 @@ var TradeView = function (_React$Component) {
   }, {
     key: "render",
     value: function render() {
-      var _this2 = this;
+      var _this3 = this;
 
       return __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
         "div",
@@ -16823,7 +16863,9 @@ var TradeView = function (_React$Component) {
             __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               "div",
               { className: "col-md-2 middle-text" },
-              d.from
+              _this3.props.tradePartners.map(function (da, i) {
+                return d.from == da._id ? da.name : "";
+              })
             ),
             __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               "div",
@@ -16831,7 +16873,7 @@ var TradeView = function (_React$Component) {
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 "strong",
                 null,
-                _this2.props.books.map(function (da, i) {
+                _this3.props.books.map(function (da, i) {
                   return da.isbn == d.offer ? da.name : "";
                 })
               )
@@ -16847,7 +16889,7 @@ var TradeView = function (_React$Component) {
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 "strong",
                 null,
-                _this2.props.books.map(function (da, i) {
+                _this3.props.books.map(function (da, i) {
                   return da.isbn == d.for ? da.name : "";
                 })
               )
@@ -16859,7 +16901,7 @@ var TradeView = function (_React$Component) {
                 "button",
                 { className: "btn-primary",
                   onClick: function onClick() {
-                    return _this2.confirmTrade(d.from, _this2.props.userData._id, d.offer, d.for);
+                    return _this3.confirmTrade(d.from, _this3.props.userData._id, d.offer, d.for);
                   } },
                 "Accept"
               )
@@ -16890,7 +16932,9 @@ var TradeView = function (_React$Component) {
             __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               "div",
               { className: "col-md-2 middle-text" },
-              d.to
+              _this3.props.tradePartners.map(function (da, i) {
+                return d.to == da._id ? da.name : "";
+              })
             ),
             __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
               "div",
@@ -16898,7 +16942,7 @@ var TradeView = function (_React$Component) {
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 "strong",
                 null,
-                _this2.props.books.map(function (da, i) {
+                _this3.props.books.map(function (da, i) {
                   return da.isbn == d.offer ? da.name : "";
                 })
               )
@@ -16914,7 +16958,7 @@ var TradeView = function (_React$Component) {
               __WEBPACK_IMPORTED_MODULE_0_react___default.a.createElement(
                 "strong",
                 null,
-                _this2.props.books.map(function (da, i) {
+                _this3.props.books.map(function (da, i) {
                   return da.isbn == d.for ? da.name : "";
                 })
               )
@@ -16926,7 +16970,7 @@ var TradeView = function (_React$Component) {
                 "button",
                 { className: "btn-danger",
                   onClick: function onClick() {
-                    return _this2.cancelTrade(d.to, _this2.props.userData._id, d.offer, d.for);
+                    return _this3.cancelTrade(d.to, _this3.props.userData._id, d.offer, d.for);
                   } },
                 "Cancel"
               )

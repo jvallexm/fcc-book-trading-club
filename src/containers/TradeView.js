@@ -7,7 +7,49 @@ export default class TradeView extends React.Component
     super(props);
     this.cancelTrade = this.cancelTrade.bind(this);
     this.confirmTrade = this.confirmTrade.bind(this);
+    this.state = {badRequests: []};
   }
+  componentWillMount()
+  {
+    let getNames = [];
+    let badRequests = [];
+    //console.log(this.props.userData);
+    for(var i=0;i<this.props.userData.sent_offers.length;i++)
+    {
+      if(getNames.indexOf(this.props.userData.sent_offers[i].to)==-1)
+        getNames.push(this.props.userData.sent_offers[i].to);
+      if(this.props.userData.books.indexOf(this.props.userData.sent_offers[i].offer)==-1)
+        badRequests.push({from: this.props.userData._id, to: this.props.userData.sent_offers[i].to, offer: this.props.userData.sent_offers[i].offer, for: this.props.userData.sent_offers[i].for});
+    }
+    for(var j=0;j<this.props.userData.pending_trades.length;j++)
+    {
+      if(getNames.indexOf(this.props.userData.pending_trades[j].from)==-1)
+        getNames.push(this.props.userData.pending_trades[j].from);
+    }
+    this.props.socket.emit("get user names",{names: getNames});
+    
+    this.props.socket.on("send users", (data)=>{
+      //let badRequests = [];
+      for(var k=0;k<this.props.userData.pending_trades.length;k++)
+      {
+        for(var l=0;l<data.users.length;l++)
+        {
+          if(this.props.userData.pending_trades[k].from == data.users[l]._id)
+          {
+            if(   this.props.userData.books.indexOf(this.props.userData.pending_trades[k].for) == -1
+               || data.users[l].books.indexOf(this.props.userData.pending_trades[k].offer) == -1)
+            badRequests.push({from: data.users[l]._id, to: this.props.userData._id, offer: this.props.userData.pending_trades[k].offer, for: this.props.userData.pending_trades[k].for});   
+          }  
+        }
+      }
+      for(var m=0;m<badRequests.length;m++)
+      {
+        this.props.socket.emit("cancel swap", badRequests[m]);
+      }
+    });
+    
+  }
+
   confirmTrade(from,to,offer,ffor)
   {
     let toCancel = {
@@ -44,7 +86,9 @@ export default class TradeView extends React.Component
           : this.props.userData.pending_trades.map((d,i)=>
             <div className="row trade-btn" key={d+i+"f"}>
               <div className="col-md-2 middle-text">
-                 {d.from}
+                 {this.props.tradePartners.map((da,i)=>
+                   d.from == da._id ? da.name : ""
+                 )}
               </div>
               <div className="col-md-4 middle-text">
                  <strong>{
@@ -77,7 +121,9 @@ export default class TradeView extends React.Component
           :this.props.userData.sent_offers.map((d,i)=>
             <div className="row trade-btn" key={d+i+"g"}>
               <div className="col-md-2 middle-text">
-                 {d.to}
+                 {this.props.tradePartners.map((da,i)=>
+                   d.to == da._id ? da.name : ""
+                 )}
               </div>
               <div className="col-md-4 middle-text">
                  <strong>{
