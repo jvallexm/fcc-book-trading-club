@@ -3,6 +3,7 @@ var express = require('express');
 var app = express(); 
 var mongodb = require('mongodb');
 var MongoClient = mongodb.MongoClient;
+var request = require("request");
 var url = 'mongodb://bookbook:fourbooks@ds161742.mlab.com:61742/books';
 
 app.use(express.static(__dirname));
@@ -10,10 +11,6 @@ app.use(express.static(__dirname));
 
 
 var server = app.listen(process.env.PORT, function() {
-    console.log('Server listening');
-});
-
-app.listen(process.env.PORT, function() {
     console.log('Server listening');
 });
 
@@ -336,4 +333,8 @@ io.on('connection', (socket) => {
     
 
  
+});
+
+app.listen(process.env.PORT, function() {
+    console.log('Server listening');
 });
