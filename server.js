@@ -8,9 +8,13 @@ var url = 'mongodb://bookbook:fourbooks@ds161742.mlab.com:61742/books';
 
 app.use(express.static(__dirname));
 
+
+
 var server = app.listen(process.env.PORT, function() {
     console.log('Server listening');
 });
+
+server;
 
 const io = require('socket.io')(server);
 
